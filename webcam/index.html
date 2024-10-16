@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Playground</title>
+
+  <script defer src="webcam.js"></script>
+  <script defer src="sierpinski.js"></script>
+
+  <link rel="stylesheet" href="knacss.css">
+  <link rel="stylesheet" href="common.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1 class="cursive">Playground</h1>
+  </header>
+
+  <main>
+    <section>
+      <div class="video-container">
+        <video id="webcam" width="100%" height="100%" class="backlight">Video not available.</video>
+      </div>
+    </section>
+
+    <div class="item">
+			<i class="loader"></i>
+		</div>
+
+    <section>
+      <canvas id="sierpinski" width="400" height="346" class="backlight"></canvas>
+    </section>
+  </main>
+
+  <footer>
+    <div id="footer">&copy; 2000 <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a></div>
+  </footer>
+
+  <svg width="0" height="0">
+    <filter id="blur-and-scale" y="-50%" x="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="25" result="blurred" />
+      <feColorMatrix type="saturate" in="blurred" values="15" />
+      <feComposite in="SourceGraphic" operator="over" />
+    </filter>
+  </svg>
+
+  <script>
+    const currentYear = new Date().getFullYear()
+    document.querySelector('footer div#footer').innerHTML = `&copy; ${currentYear} <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a>`
+  </script>
+
+</body>
+</html>

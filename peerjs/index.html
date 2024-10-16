@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>PeerJS</title>
+
+  <script defer src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script defer src="utils.js"></script>
+  <script defer src="draw.js"></script>
+  <script defer src="script.js"></script>
+
+  <link rel="stylesheet" href="knacss.css">
+  <link rel="stylesheet" href="common.css">
+</head>
+<body>
+
+  <header>
+    <h1 class="cursive">PeerJS</h1>
+  </header>
+
+  <main>
+    <section>
+      <h2 class="cursive">Configuration</h2>
+      <div>
+        <h3 class="cursive">My id</h3>
+        <span id="peerId"></span><button id="copyPeerIdButton" onclick="copyPeerId()">Copy</button>
+      </div>
+      <div>
+        <h3 class="cursive">Join a room</h3>
+        <input id="roomToJoinInputId" name="RoomToJoin" placeholder="Room to join" type="text">
+        <button onclick="joinRoom()">Join</section>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="cursive">Draw</h2>
+      <canvas id="canvas" width="600" height="400" class="" onmousemove="updateUser(event)"></canvas>
+    </section>
+  </main>
+
+  <footer>
+    <div id="footer">&copy; 2000 <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a></div>
+  </footer>
+
+  <script>
+    const currentYear = new Date().getFullYear()
+    document.querySelector('footer div#footer').innerHTML = `&copy; ${currentYear} <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a>`
+  </script>
+
+</body>
+</html>
