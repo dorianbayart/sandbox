@@ -26,3 +26,7 @@ footer {
 footer a {
   text-decoration: none;
 }
+
+.backlight {
+  filter: url(#blur-and-scale);
+}

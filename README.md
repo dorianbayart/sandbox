@@ -4,12 +4,21 @@
 
 
 
+## Alpine
+Small boilerplate with AlpineJS and TailwindCss: [alpinejs](alpinejs)
+
+
+## Loader
+Mini CSS loader: [loader](loader)
+
+
 ## PeerToPeer
 Testing the PeerJS library (WebRTC): [peerjs](peerjs)
 
 
-## Webcam effect
-Display a glow effect depending on the webcam content: [webcam](webcam)
+## Webcam
+Display a simple webcam: [webcam](webcam)
 
 
-
+## Glow effect
+Display a dynamic glow effect depending on the webcam content: [glow-effect](glow-effect)

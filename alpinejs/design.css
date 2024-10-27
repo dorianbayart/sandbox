@@ -1,0 +1,4 @@
+section:not(:last-of-type) {
+  margin-top: 1rem;
+  margin-bottom: 2.5rem;
+}

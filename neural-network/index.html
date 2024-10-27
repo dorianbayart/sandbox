@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Neural Network | 0xDBA</title>
+
+  <link rel="canonical" href="https://dorianbayart.github.io" />
+
+  <script defer src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6"></script>
+
+
+  <script type="importmap">
+  {
+    "imports": {
+      "blob": "./blob.js",
+      "grid": "./grid.js",
+      "house": "./house.js",
+      "mouse": "./mouse.js",
+      "network": "./network.js",
+      "neuron": "./neuron.js",
+      "utils": "./utils.js",
+      "uuid": "https://jspm.dev/uuid"
+    }
+  }
+  </script>
+
+  <script defer src="./index.js" type="module"></script>
+
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+
+<body>
+  <div id="container">
+    <canvas id="canvas"></canvas>
+  </div>
+</body>
+
+</html>

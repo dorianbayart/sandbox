@@ -1,0 +1,28 @@
+* {
+	padding: 0;
+	margin: 0;
+}
+
+html {
+	width: 100%;
+	height: 100%;
+	font-family: sans;
+}
+
+body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background: linear-gradient(to bottom, #2b4d60 0%, #004a32 100%);
+}
+
+#container {
+	display: flex;
+	width: 100%;
+	height: 100%;
+	align-items: center;
+	flex-direction: column;
+}
