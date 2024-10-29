@@ -8,8 +8,16 @@
 Small boilerplate with AlpineJS and TailwindCss: [alpinejs](alpinejs)
 
 
+## Glow effect
+Display a dynamic glow effect depending on the webcam content: [glow-effect](glow-effect)
+
+
 ## Loader
 Mini CSS loader: [loader](loader)
+
+
+## Mathematics - Algorithms
+Fibonacci algorithms: [fibonacci.js](mathematics/fibonacci.js)
 
 
 ## PeerToPeer
@@ -20,5 +28,5 @@ Testing the PeerJS library (WebRTC): [peerjs](peerjs)
 Display a simple webcam: [webcam](webcam)
 
 
-## Glow effect
-Display a dynamic glow effect depending on the webcam content: [glow-effect](glow-effect)
+## Workers
+Use Web Workers to bubble sort a very big array: [workers](workers)
