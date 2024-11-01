@@ -8,7 +8,7 @@
 Small boilerplate with AlpineJS and TailwindCss: [alpinejs](alpinejs)
 
 
-## Glow effect
+## Glow/backlight effect
 Display a dynamic glow effect depending on the webcam content: [glow-effect](glow-effect)
 
 
