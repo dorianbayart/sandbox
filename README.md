@@ -20,6 +20,10 @@ Mini CSS loader: [loader](loader)
 Fibonacci algorithms: [fibonacci.js](mathematics/fibonacci.js)
 
 
+## Neural network
+A few cars with neural networks learn to drive: [neural-network](neural-network)
+
+
 ## PeerToPeer
 Testing the PeerJS library (WebRTC): [peerjs](peerjs)
 
