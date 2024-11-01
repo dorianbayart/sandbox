@@ -1,0 +1,24 @@
+* {
+  transition: all 85ms ease-in-out;
+}
+
+#svg-list {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+#svg-list img {
+  height: 8dvh;
+  margin: 2dvw;
+  cursor: pointer;
+}
+
+#svg-list img:hover {
+  transform: scale(1.5);
+}
+
+#svg-link {
+  text-align: center;
+}
