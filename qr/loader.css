@@ -1,0 +1,58 @@
+.loader {
+  --color: #cccc;
+  --size-mid: 75px;
+  --size-bar: 4px;
+
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.loader::before,
+.loader::after {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+}
+
+.loader::before {
+  height: var(--size-bar);
+  width: var(--size-mid);
+  border-radius: var(--size-bar);
+  background-color: var(--color);
+  animation: loader 1.5s ease-in-out infinite;
+}
+
+@keyframes loader {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  15%,
+  85% {
+    opacity: 1;
+  }
+
+  0%,
+  10%,
+  90%,
+  100% {
+    transform: scaleX(0);
+  }
+
+  45%,
+  55% {
+    transform: scaleX(1);
+  }
+
+  0%,
+  40% {
+    transform-origin: left;
+  }
+
+  60%,
+  100% {
+    transform-origin: right;
+  }
+}
