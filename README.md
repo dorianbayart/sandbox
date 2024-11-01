@@ -24,6 +24,14 @@ Fibonacci algorithms: [fibonacci.js](mathematics/fibonacci.js)
 Testing the PeerJS library (WebRTC): [peerjs](peerjs)
 
 
+## QR Code
+Simply display a QR code: [qr](qr)
+
+
+## SVG Repo
+Fetch a JSON and display few SVG images: [svg-icons](svg-icons)
+
+
 ## Webcam
 Display a simple webcam: [webcam](webcam)
 
