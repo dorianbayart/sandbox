@@ -1,0 +1,28 @@
+.cursive {
+  font-family: cursive;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: 0.5rem 1rem;
+}
+
+main {
+  flex-grow: 1;
+}
+
+section {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+footer {
+  margin-top: 1rem;
+  text-align: end;
+}
+
+footer a {
+  text-decoration: none;
+}

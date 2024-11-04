@@ -8,6 +8,10 @@
 Small boilerplate with AlpineJS and TailwindCss: [alpinejs](alpinejs)
 
 
+## Canvas
+Playing with canvas: [canvas](canvas)
+
+
 ## Glow/backlight effect
 Display a dynamic glow effect depending on the webcam content: [glow-effect](glow-effect)
 
