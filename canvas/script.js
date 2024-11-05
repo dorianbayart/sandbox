@@ -128,7 +128,7 @@ const createCircle = async () => {
 }
 
 
-var maxCircles, circleArray = [], elapsed = Date.now()
+var maxCircles = 10, circleArray = [], elapsed = Date.now()
 
 const resizeEvent = async () => {
   canvas.width = window.innerWidth
@@ -137,7 +137,7 @@ const resizeEvent = async () => {
 }
 
 const init = () => {
-  await resizeEvent()
+  resizeEvent()
   circleArray = []
 
   for (var i = 0; i < maxCircles; i++) {
