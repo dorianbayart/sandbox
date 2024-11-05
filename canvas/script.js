@@ -126,7 +126,7 @@ var maxCircles = 10, circleArray = [], elapsed = Date.now()
 const resizeEvent = async () => {
   canvas.width = window.innerWidth
   canvas.height = window.innerHeight
-  maxCircles = Math.round(canvas.width * canvas.height / 4000)
+  maxCircles = Math.round(canvas.width * canvas.height / 1000)
 }
 
 const init = () => {
