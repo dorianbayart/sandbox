@@ -43,6 +43,9 @@ var mouse = {
 
 var maxRadius = 40
 
+const gravity = 0.12
+const xFriction = 0.95, yFriction = 0.85
+
 var colorArray = [
   '#542773',
   '#BFF272',
@@ -70,21 +73,31 @@ function Circle(x, y, dx, dy, radius, color, life) {
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false)
     c.fillStyle = this.color
     c.fill()
+    c.strokeStyle = this.color
+    // c.stroke()
     c.closePath()
     c.globalAlpha = 1
   }
 
   this.update = async (delay) => {
     // Inverse movement on edges
-    if(this.x + this.radius > innerWidth || this.x - this.radius < 0) {
-      this.dx = -this.dx
+    if(this.x + this.radius >= innerWidth || this.x - this.radius <= 0) {
+      this.dx = -this.dx * xFriction
     }
-    if(this.y + this.radius > innerHeight || this.y - this.radius < 0) {
-      this.dy = -this.dy
+    if(this.y + this.radius >= innerHeight) {
+      this.dy = -this.dy * yFriction
+      this.dx = this.dx * xFriction
     }
+    // Add gravity
+    this.dy += gravity
     // Move the ball
     this.x += this.dx
     this.y += this.dy
+
+    // Fix edges stuck balls
+    if(this.x + this.radius > innerWidth) this.x = innerWidth - this.radius
+    if(this.x - this.radius < 0) this.x = this.radius
+    if(this.y + this.radius > innerHeight) this.y = innerHeight - this.radius
 
     // Mouse Interactivity
     if(mouse.x - this.x < 50 && mouse.x - this.x > -50 &&
@@ -111,7 +124,7 @@ function Circle(x, y, dx, dy, radius, color, life) {
 const createCircle = async () => {
   var radius = Math.round(Math.random() * 8 + 2)
   var x = Math.random() * (window.innerWidth - 2 * radius) + radius
-  var y = Math.random() * (window.innerHeight - 2 * radius) + radius
+  var y = Math.random() * (window.innerHeight/2 - 2 * radius) + radius
   // var color = `hsl(${Math.random() * 360}, 80%, 40%, 85%)`
   var color = colorArray[Math.floor(Math.random() * colorArray.length)]
   var dx = (Math.random() - 0.5) * 3
@@ -126,7 +139,7 @@ var maxCircles = 10, circleArray = [], elapsed = Date.now()
 const resizeEvent = async () => {
   canvas.width = window.innerWidth
   canvas.height = window.innerHeight
-  maxCircles = Math.round(canvas.width * canvas.height / 1000)
+  maxCircles = Math.round(canvas.width * canvas.height / 2000)
 }
 
 const init = () => {
@@ -134,7 +147,7 @@ const init = () => {
   circleArray = []
 
   for (var i = 0; i < maxCircles; i++) {
-    createCircle()
+    //createCircle()
   }
 }
 
@@ -145,13 +158,15 @@ const animate = async () => {
   const delay = Date.now() - elapsed
   for (var i = 0; i < circleArray.length; ) {
     circleArray[i].update(delay)
-    
+
     if(circleArray[i].life <= 0) {
       circleArray.splice(i, 1)
     } else {
       i++
     }
   }
+
+  document.getElementById('stats').innerHTML = `Balls: ${circleArray.length}`
 
   if(circleArray.length < maxCircles) createCircle()
   elapsed = Date.now()
