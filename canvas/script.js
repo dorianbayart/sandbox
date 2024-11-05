@@ -62,25 +62,31 @@ function Circle(x, y, dx, dy, radius, color, life) {
   this.radius = radius
   this.color = color
   this.life = life
+  this.opacity = 0
 
   this.draw = () => {
+    c.globalAlpha = this.opacity
     c.beginPath()
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false)
     c.fillStyle = this.color
     c.fill()
+    c.closePath()
+    c.globalAlpha = 1
   }
 
   this.update = async (delay) => {
+    // Inverse movement on edges
     if(this.x + this.radius > innerWidth || this.x - this.radius < 0) {
       this.dx = -this.dx
     }
     if(this.y + this.radius > innerHeight || this.y - this.radius < 0) {
       this.dy = -this.dy
     }
+    // Move the ball
     this.x += this.dx
     this.y += this.dy
 
-    // interactivity
+    // Mouse Interactivity
     if(mouse.x - this.x < 50 && mouse.x - this.x > -50 &&
       mouse.y - this.y < 50 && mouse.y - this.y > -50
     ) {
@@ -89,13 +95,18 @@ function Circle(x, y, dx, dy, radius, color, life) {
       this.radius -= 1
     }
 
+    // Reduce Life
     this.life -= delay / 1000
+
+    // Manage Opacity
+    if(this.life > 1) this.opacity += delay / 1000
+    else this.opacity -= delay / 1000
+    if(this.opacity > 0.995) this.opacity = 1
+    if(this.life < 1 && this.opacity < 0.005) this.opacity = 0
 
     this.draw()
   }
 }
-
-
 
 const createCircle = async () => {
   var radius = Math.round(Math.random() * 8 + 2)
@@ -105,11 +116,10 @@ const createCircle = async () => {
   var color = colorArray[Math.floor(Math.random() * colorArray.length)]
   var dx = (Math.random() - 0.5) * 3
   var dy = (Math.random() - 0.5) * 3
-  var life = Math.random() * 20 + 2
+  var life = Math.random() * 15 + 5
 
   circleArray.push(new Circle(x, y, dx, dy, radius, color, life))
 }
-
 
 var maxCircles = 10, circleArray = [], elapsed = Date.now()
 
