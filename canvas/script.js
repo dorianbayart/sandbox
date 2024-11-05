@@ -133,12 +133,15 @@ const animate = async () => {
   c.clearRect(0, 0, innerWidth, innerHeight)
 
   const delay = Date.now() - elapsed
-  circleArray.forEach((circle, i) => {
-    circle.update(delay)
-    if(circle.life < 0) {
+  for (var i = 0; i < circleArray.length; ) {
+    circleArray[i].update(delay)
+    
+    if(circleArray[i].life <= 0) {
       circleArray.splice(i, 1)
+    } else {
+      i++
     }
-  })
+  }
 
   if(circleArray.length < maxCircles) createCircle()
   elapsed = Date.now()
