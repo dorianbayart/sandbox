@@ -51,23 +51,6 @@ var colorArray = [
   '#D93E30'
 ]
 
-window.addEventListener('resize', resizeEvent)
-
-window.addEventListener('mousemove', (event) => {
-  mouse.x = event.x
-  mouse.y = event.y
-})
-
-window.addEventListener('touchstart', (event) => {
-  mouse.x = event.x
-  mouse.y = event.y
-})
-
-window.addEventListener('touchmove', (event) => {
-  mouse.x = event.x
-  mouse.y = event.y
-})
-
 
 
 function Circle(x, y, dx, dy, radius, color, life) {
@@ -163,3 +146,21 @@ const animate = async () => {
 
 init()
 animate()
+
+// Events
+window.addEventListener('resize', resizeEvent)
+
+window.addEventListener('mousemove', (event) => {
+  mouse.x = event.x
+  mouse.y = event.y
+})
+
+window.addEventListener('touchstart', (event) => {
+  mouse.x = event.x
+  mouse.y = event.y
+})
+
+window.addEventListener('touchmove', (event) => {
+  mouse.x = event.x
+  mouse.y = event.y
+})
