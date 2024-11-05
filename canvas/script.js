@@ -127,8 +127,8 @@ const createCircle = async () => {
   var y = Math.random() * (window.innerHeight/2 - 2 * radius) + radius
   // var color = `hsl(${Math.random() * 360}, 80%, 40%, 85%)`
   var color = colorArray[Math.floor(Math.random() * colorArray.length)]
-  var dx = (Math.random() - 0.5) * 3
-  var dy = (Math.random() - 0.5) * 3
+  var dx = (Math.random() - 0.5) * 5
+  var dy = (Math.random() - 1.5) * 3
   var life = Math.random() * 15 + 5
 
   circleArray.push(new Circle(x, y, dx, dy, radius, color, life))
@@ -146,8 +146,8 @@ const init = () => {
   resizeEvent()
   circleArray = []
 
-  for (var i = 0; i < maxCircles; i++) {
-    //createCircle()
+  for (var i = 0; i < maxCircles / 40; i++) {
+    createCircle()
   }
 }
 
