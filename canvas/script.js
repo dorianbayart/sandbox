@@ -1,9 +1,6 @@
 'use script'
 
 const canvas = document.querySelector('canvas')
-canvas.width = window.innerWidth
-canvas.height = window.innerHeight
-
 const c = canvas.getContext('2d')
 
 // Rectangle
@@ -54,12 +51,7 @@ var colorArray = [
   '#D93E30'
 ]
 
-window.addEventListener('resize', () => {
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
-
-  maxCircles = Math.round(canvas.width * canvas.height / 4000)
-})
+window.addEventListener('resize', resizeEvent)
 
 window.addEventListener('mousemove', (event) => {
   mouse.x = event.x
@@ -95,7 +87,7 @@ function Circle(x, y, dx, dy, radius, color, life) {
     c.fill()
   }
 
-  this.update = (delay) => {
+  this.update = async (delay) => {
     if(this.x + this.radius > innerWidth || this.x - this.radius < 0) {
       this.dx = -this.dx
     }
@@ -122,7 +114,7 @@ function Circle(x, y, dx, dy, radius, color, life) {
 
 
 
-const createCircle = () => {
+const createCircle = async () => {
   var radius = Math.round(Math.random() * 8 + 2)
   var x = Math.random() * (window.innerWidth - 2 * radius) + radius
   var y = Math.random() * (window.innerHeight - 2 * radius) + radius
@@ -136,10 +128,16 @@ const createCircle = () => {
 }
 
 
-var circleArray = [], elapsed = Date.now()
-var maxCircles = 85
+var maxCircles, circleArray = [], elapsed = Date.now()
+
+const resizeEvent = async () => {
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+  maxCircles = Math.round(canvas.width * canvas.height / 4000)
+}
 
 const init = () => {
+  await resizeEvent()
   circleArray = []
 
   for (var i = 0; i < maxCircles; i++) {
@@ -147,8 +145,7 @@ const init = () => {
   }
 }
 
-
-const animate = () => {
+const animate = async () => {
   requestAnimationFrame(animate)
   c.clearRect(0, 0, innerWidth, innerHeight)
 
