@@ -6,7 +6,12 @@ body {
   display: flex;
   flex-direction: column;
   opacity: 0.85;
-  font-weight: lighter;
+  font-weight: 200;
+  font-size: smaller;
+  width: fit-content;
+  padding: 0.5rem 0.75rem;
+  background: #eeee;
+  border-radius: 0.5rem;
 }
 
 canvas {
