@@ -41,10 +41,10 @@ var mouse = {
   z: undefined
 }
 
-var fps = 60
+var fps = 60, ballsAverage = 0
+var maxCircles = 10, circleArray = [], elapsed = Date.now() - 1
 
-var maxRadius = 40
-
+const maxRadius = 40
 const gravity = 0.12
 const xFriction = 0.95, yFriction = 0.85
 
@@ -136,7 +136,7 @@ const createCircle = async () => {
   circleArray.push(new Circle(x, y, dx, dy, radius, color, life))
 }
 
-var maxCircles = 10, circleArray = [], elapsed = Date.now()
+
 
 const resizeEvent = async () => {
   canvas.width = window.innerWidth
@@ -159,7 +159,10 @@ const animate = async () => {
   requestAnimationFrame(animate)
   c.clearRect(0, 0, innerWidth, innerHeight)
 
-  const delay = Date.now() - elapsed
+  const now = Date.now()
+  const delay = now - elapsed
+  elapsed = now
+  
   for (var i = 0; i < circleArray.length; ) {
     circleArray[i].update(delay)
 
@@ -170,12 +173,13 @@ const animate = async () => {
     }
   }
 
-  fps = Math.round((fps * 9 + 1000/delay) / 10 * 10) / 10
+  fps = Math.round((fps * 59 + 1000/(delay)) / 60 * 10) / 10
   document.getElementById('fps').innerHTML = `${fps} FPS`
-  document.getElementById('stats').innerHTML = `${circleArray.length} balls`
+
+  ballsAverage = Math.round((ballsAverage * 99 + circleArray.length) / 100)
+  document.getElementById('stats').innerHTML = `${ballsAverage} balls`
 
   if(circleArray.length < maxCircles) createCircle()
-  elapsed = Date.now()
 }
 
 init()
