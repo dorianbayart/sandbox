@@ -2,6 +2,13 @@ body {
   overscroll-behavior-y: contain; /* prevents pull-to-refresh on mobile */
 }
 
+#stats-container {
+  display: flex;
+  flex-direction: column;
+  opacity: 0.85;
+  font-weight: lighter;
+}
+
 canvas {
   position: absolute;
   top: 0;
