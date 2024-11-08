@@ -1,3 +1,7 @@
+body {
+  overscroll-behavior-y: contain; /* prevents pull-to-refresh on mobile */
+}
+
 canvas {
   position: absolute;
   top: 0;
