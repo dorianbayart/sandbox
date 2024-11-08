@@ -41,6 +41,8 @@ var mouse = {
   z: undefined
 }
 
+var fps = 60
+
 var maxRadius = 40
 
 const gravity = 0.12
@@ -140,6 +142,8 @@ const resizeEvent = async () => {
   canvas.width = window.innerWidth
   canvas.height = window.innerHeight
   maxCircles = Math.round(canvas.width * canvas.height / 2000)
+
+  document.getElementById('resolution').innerHTML = `${canvas.width}x${canvas.height}`
 }
 
 const init = () => {
@@ -166,7 +170,9 @@ const animate = async () => {
     }
   }
 
-  document.getElementById('stats').innerHTML = `Balls: ${circleArray.length}`
+  fps = Math.round((fps * 9 + 1/delay) / 10 * 10) / 10
+  document.getElementById('fps').innerHTML = `${fps} FPS`
+  document.getElementById('stats').innerHTML = `${circleArray.length} balls`
 
   if(circleArray.length < maxCircles) createCircle()
   elapsed = Date.now()
