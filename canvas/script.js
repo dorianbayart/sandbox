@@ -25,21 +25,12 @@ const c = canvas.getContext('2d')
 // c.strokeStyle = 'darkblue'
 // c.stroke()
 
-// for (var i = 0; i < 3; i++) {
-//   var x = Math.random() * window.innerWidth
-//   var y = Math.random() * window.innerHeight
-//   var color = Math.random() * 360
-//   c.beginPath()
-//   c.arc(x, y, 30, 0, Math.PI * 2, false)
-//   c.strokeStyle = `hsl(${color}, 80%, 50%, 75%)`
-//   c.stroke()
-// }
-
 
 var mouse = {
   x: undefined,
   z: undefined
 }
+var devicePixelRatio = 1
 
 var fps = 60, ballsAverage = 0
 var maxCircles = 10, circleArray = [], elapsed = Date.now() - 1
@@ -83,10 +74,10 @@ function Circle(x, y, dx, dy, radius, color, life) {
 
   this.update = async (delay) => {
     // Inverse movement on edges
-    if(this.x + this.radius >= innerWidth || this.x - this.radius <= 0) {
+    if(this.x + this.radius >= canvas.width || this.x - this.radius <= 0) {
       this.dx = -this.dx * xFriction
     }
-    if(this.y + this.radius >= innerHeight) {
+    if(this.y + this.radius >= canvas.height) {
       this.dy = -this.dy * yFriction
       this.dx = this.dx * xFriction
     }
@@ -97,9 +88,9 @@ function Circle(x, y, dx, dy, radius, color, life) {
     this.y += this.dy
 
     // Fix edges stuck balls
-    if(this.x + this.radius > innerWidth) this.x = innerWidth - this.radius
+    if(this.x + this.radius > canvas.width) this.x = canvas.width - this.radius
     if(this.x - this.radius < 0) this.x = this.radius
-    if(this.y + this.radius > innerHeight) this.y = innerHeight - this.radius
+    if(this.y + this.radius > canvas.height) this.y = canvas.height - this.radius
 
     // Mouse Interactivity
     if(mouse.x - this.x < 50 && mouse.x - this.x > -50 &&
@@ -125,8 +116,8 @@ function Circle(x, y, dx, dy, radius, color, life) {
 
 const createCircle = async () => {
   var radius = Math.round(Math.random() * 8 + 2)
-  var x = Math.random() * (window.innerWidth - 2 * radius) + radius
-  var y = Math.random() * (window.innerHeight/2 - 2 * radius) + radius
+  var x = Math.random() * (canvas.width - 2 * radius) + radius
+  var y = Math.random() * (canvas.height/2 - 2 * radius) + radius
   // var color = `hsl(${Math.random() * 360}, 80%, 40%, 85%)`
   var color = colorArray[Math.floor(Math.random() * colorArray.length)]
   var dx = (Math.random() - 0.5) * 5
@@ -139,9 +130,11 @@ const createCircle = async () => {
 
 
 const resizeEvent = async () => {
-  const devicePixelRatio = 'ontouchstart' in window || navigator.msMaxTouchPoints ? window.devicePixelRatio : 1
-  canvas.width = window.innerWidth * devicePixelRatio
-  canvas.height = window.innerHeight * devicePixelRatio
+  devicePixelRatio = 'ontouchstart' in window || navigator.msMaxTouchPoints ? window.devicePixelRatio : 1
+  canvas.width = innerWidth * devicePixelRatio
+  canvas.height = innerHeight * devicePixelRatio
+  canvas.style.width = (canvas.width / devicePixelRatio) + 'px'
+  canvas.style.height = (canvas.height / devicePixelRatio) + 'px'
   maxCircles = Math.round(canvas.width * canvas.height / 2000)
 
   document.getElementById('resolution').innerHTML = `${canvas.width}x${canvas.height} (DPR: ${Math.round(devicePixelRatio*1000)/1000})`
@@ -158,12 +151,12 @@ const init = () => {
 
 const animate = async () => {
   requestAnimationFrame(animate)
-  c.clearRect(0, 0, innerWidth, innerHeight)
+  c.clearRect(0, 0, canvas.width, canvas.height)
 
   const now = Date.now()
   const delay = now - elapsed
   elapsed = now
-  
+
   for (var i = 0; i < circleArray.length; ) {
     circleArray[i].update(delay)
 
@@ -190,16 +183,16 @@ animate()
 window.addEventListener('resize', resizeEvent)
 
 window.addEventListener('mousemove', (event) => {
-  mouse.x = event.x
-  mouse.y = event.y
+  mouse.x = event.x * devicePixelRatio
+  mouse.y = event.y * devicePixelRatio
 })
 
 window.addEventListener('touchstart', (event) => {
-  mouse.x = event.x
-  mouse.y = event.y
+  mouse.x = event.x * devicePixelRatio
+  mouse.y = event.y * devicePixelRatio
 })
 
 window.addEventListener('touchmove', (event) => {
-  mouse.x = event.x
-  mouse.y = event.y
+  mouse.x = event.x * devicePixelRatio
+  mouse.y = event.y * devicePixelRatio
 })
