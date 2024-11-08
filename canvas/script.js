@@ -139,7 +139,7 @@ const createCircle = async () => {
 
 
 const resizeEvent = async () => {
-  const devicePixelRatio = window.devicePixelRatio || 1
+  const devicePixelRatio = 'ontouchstart' in window || navigator.msMaxTouchPoints ? window.devicePixelRatio : 1
   canvas.width = window.innerWidth * devicePixelRatio
   canvas.height = window.innerHeight * devicePixelRatio
   maxCircles = Math.round(canvas.width * canvas.height / 2000)
