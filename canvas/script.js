@@ -144,7 +144,7 @@ const resizeEvent = async () => {
   canvas.height = window.innerHeight * devicePixelRatio
   maxCircles = Math.round(canvas.width * canvas.height / 2000)
 
-  document.getElementById('resolution').innerHTML = `${canvas.width}x${canvas.height} (DPR: ${Math.round(dpr*1000)/1000})`
+  document.getElementById('resolution').innerHTML = `${canvas.width}x${canvas.height} (DPR: ${Math.round(devicePixelRatio*1000)/1000})`
 }
 
 const init = () => {
