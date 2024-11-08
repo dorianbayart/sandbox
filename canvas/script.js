@@ -139,11 +139,12 @@ const createCircle = async () => {
 
 
 const resizeEvent = async () => {
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
+  const devicePixelRatio = window.devicePixelRatio || 1
+  canvas.width = window.innerWidth * devicePixelRatio
+  canvas.height = window.innerHeight * devicePixelRatio
   maxCircles = Math.round(canvas.width * canvas.height / 2000)
 
-  document.getElementById('resolution').innerHTML = `${canvas.width}x${canvas.height}`
+  document.getElementById('resolution').innerHTML = `${canvas.width}x${canvas.height} (DPR: ${Math.round(dpr*1000)/1000})`
 }
 
 const init = () => {
