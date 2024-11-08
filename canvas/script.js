@@ -170,7 +170,7 @@ const animate = async () => {
     }
   }
 
-  fps = Math.round((fps * 9 + 1/delay) / 10 * 10) / 10
+  fps = Math.round((fps * 9 + 1000/delay) / 10 * 10) / 10
   document.getElementById('fps').innerHTML = `${fps} FPS`
   document.getElementById('stats').innerHTML = `${circleArray.length} balls`
 
