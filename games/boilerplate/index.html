@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+
+  <title>Playground</title>
+
+  <link rel="stylesheet" href="knacss.css">
+  <link rel="stylesheet" href="common.css">
+
+  <link rel="stylesheet" href="style.css">
+  <script defer src="script.js"></script>
+</head>
+<body>
+
+  <header>
+    <h1 class="cursive">Boilerplate</h1>
+  </header>
+
+  <main>
+    <section>
+      <h2 class="cursive"></h2>
+    </section>
+  </main>
+
+  <footer>
+    <div id="footer">&copy; 2000 <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a></div>
+  </footer>
+
+  <script>
+    const currentYear = new Date().getFullYear()
+    document.querySelector('footer div#footer').innerHTML = `&copy; ${currentYear} <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a>`
+  </script>
+
+</body>
+</html>

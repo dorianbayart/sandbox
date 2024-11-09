@@ -5,11 +5,16 @@
 
 
 ## Alpine
-Small boilerplate with AlpineJS and TailwindCss: [alpinejs](alpinejs)
+Boilerplate with AlpineJS and TailwindCss: [alpinejs](alpinejs)
 
 
 ## Canvas
-Playing with canvas: [canvas](canvas)
+Playing with canvas - Gravity balls everywhere ! [canvas](canvas)
+
+
+## Games
+### Boilerplate
+A boilerplate project to start coding on fullscreen canvas: [boilerplate](games/boilerplate)
 
 
 ## Glow/backlight effect
@@ -17,7 +22,7 @@ Display a dynamic glow effect depending on the webcam content: [glow-effect](glo
 
 
 ## Loader
-Mini CSS loader: [loader](loader)
+Mini loader exemples: [loader](loader)
 
 
 ## Mathematics - Algorithms
