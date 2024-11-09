@@ -1,6 +1,6 @@
 'use script'
 
-const canvas = document.querySelector('canvas')
+const canvas = document.createElement("canvas")
 const c = canvas.getContext('2d')
 
 // Rectangle
@@ -28,7 +28,7 @@ const c = canvas.getContext('2d')
 
 var mouse = {
   x: undefined,
-  z: undefined
+  y: undefined
 }
 var devicePixelRatio = 1
 
@@ -114,7 +114,7 @@ function Circle(x, y, dx, dy, radius, color, life) {
   }
 }
 
-const createCircle = async () => {
+const createCircle = () => {
   var radius = Math.round(Math.random() * 8 + 2)
   var x = Math.random() * (canvas.width - 2 * radius) + radius
   var y = Math.random() * (canvas.height/2 - 2 * radius) + radius
@@ -140,13 +140,17 @@ const resizeEvent = async () => {
   document.getElementById('resolution').innerHTML = `${canvas.width}x${canvas.height} (DPR: ${Math.round(devicePixelRatio*1000)/1000})`
 }
 
-const init = () => {
-  resizeEvent()
+const init = async () => {
+  await resizeEvent()
   circleArray = []
 
   for (var i = 0; i < maxCircles / 40; i++) {
     createCircle()
   }
+
+  document.body.appendChild(canvas)
+
+  animate()
 }
 
 const animate = async () => {
@@ -177,7 +181,6 @@ const animate = async () => {
 }
 
 init()
-animate()
 
 // Events
 window.addEventListener('resize', resizeEvent)
