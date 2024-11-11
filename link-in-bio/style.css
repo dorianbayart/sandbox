@@ -57,6 +57,10 @@ body {
   background-color: var(--background);
 }
 
+small {
+  font-size: 0.75rem;
+}
+
 main,
 main > section {
   flex-grow: 1;
@@ -68,6 +72,7 @@ main > section {
 footer {
   padding: 1dvh 5dvw;
   text-align: end;
+  font-size: 0.85rem;
   color: var(--secondary);
   background-color: var(--primary);
   box-shadow: 0 -1px 1dvh var(--shadow);
@@ -87,8 +92,7 @@ header {
   box-shadow: 0 1px 1dvh var(--shadow);
 }
 
-header video,
-header img {
+header video {
   height: 5rem;
   height: max(8dvw, 12dvh);
   width: 5rem;
@@ -96,6 +100,17 @@ header img {
   border-radius: max(1dvw, 1dvh);
   outline: 1px solid var(--secondary);
   box-shadow: 0 2px max(2dvw, 2dvh) 0 var(--shadow);
+}
+
+header small {
+  display: flex;
+  align-items: center;
+}
+
+header small img {
+  margin-right: 0.25rem;
+  height: 0.85rem;
+  width: auto;
 }
 
 a {
@@ -111,6 +126,7 @@ h1 {
   font-weight: inherit;
   border-radius: 0.5rem;
   padding: 0.1rem 0.75rem;
+  margin: 0.5rem 0 0.15rem;
 }
 
 ul {
