@@ -22,4 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true)
   }, true)
 
+
+  const currentYear = new Date().getFullYear()
+  document.getElementById('footer').innerHTML = `&copy; ${currentYear} - Made with &#9829; by <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a>`
 })
