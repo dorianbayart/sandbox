@@ -21,6 +21,10 @@ A boilerplate project to start coding on fullscreen canvas: [boilerplate](games/
 Display a dynamic glow effect depending on the webcam content: [glow-effect](glow-effect)
 
 
+## Link-in-Bio
+Link-in-Bio boilerplate: [link-in-bio](link-in-bio)
+
+
 ## Loader
 Mini loader exemples: [loader](loader)
 
