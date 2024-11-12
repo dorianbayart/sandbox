@@ -7,11 +7,15 @@
   filter: url(#blur-and-scale);
 }
 
+.invert {
+  filter: invert(0.85);
+}
+
 html {
   min-height: 100dvh;
   margin: 0;
   padding: 0;
-  font-family: 'Open Sans', Roboto, Helvetica Neue, sans-serif;
+  font-family: 'Open Sans', Roboto, Helvetica Neue, system-ui, sans-serif;
   font-weight: 200;
 }
 
@@ -23,7 +27,6 @@ body {
   padding: 0;
   text-align: center;
   color: var(--primary);
-  background-color: var(--background);
 }
 
 small {
@@ -43,7 +46,9 @@ footer {
   text-align: end;
   font-size: 0.85rem;
   color: var(--secondary);
-  background-color: var(--primary);
+  background: linear-gradient(-60deg, var(--gradient-1), var(--primary), var(--gradient-2));
+  background-size: 250% 250%;
+  background-position: center;
   box-shadow: 0 -1px 1dvh var(--shadow);
 }
 
@@ -57,7 +62,9 @@ header {
   flex-direction: column;
   align-items: center;
   color: var(--secondary);
-  background-color: var(--primary);
+  background: linear-gradient(-60deg, var(--gradient-1), var(--primary), var(--gradient-2));
+  background-size: 250% 250%;
+  background-position: center;
   box-shadow: 0 1px 1dvh var(--shadow);
 }
 
