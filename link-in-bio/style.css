@@ -1,36 +1,5 @@
-@import url("https://cdn.jsdelivr.net/npm/@xz/fonts/serve/open-sans.min.css");
-
-:root {
-  --primary: #d99748;
-  --secondary: #73614c;
-  --background: #f2f2f2;
-  --background-secondary: #262626;
-  --shadow: #0d0d0d;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --primary: #263440;
-    --secondary: #d0f2dc;
-    --background: #a2a694;
-    --background-secondary: #d9b64e;
-    --shadow: #a65e1f;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --primary: #263440;
-    --secondary: #d0f2dc;
-    --background: #a2a694;
-    --background-secondary: #d9b64e;
-    --shadow: #a65e1f;
-  }
-}
-
 * {
-  transition: opacity 500ms ease-in-out;
-  transition: transform 75ms ease-in-out, box-shadow 125ms ease-in-out;
+  transition: opacity 250ms ease-in-out, transform 75ms ease-in-out, box-shadow 125ms ease-in-out;
   box-sizing: border-box;
 }
 
