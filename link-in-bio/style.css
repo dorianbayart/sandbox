@@ -1,5 +1,5 @@
 * {
-  transition: opacity 250ms ease-in-out, transform 75ms ease-in-out, box-shadow 125ms ease-in-out;
+  transition: all 400ms ease-in-out, transform 75ms ease-in-out, box-shadow 125ms ease-in-out;
   box-sizing: border-box;
 }
 
@@ -9,14 +9,6 @@
 
 .invert {
   filter: invert(0.85);
-}
-
-html {
-  min-height: 100dvh;
-  margin: 0;
-  padding: 0;
-  font-family: 'Open Sans', Roboto, Helvetica Neue, system-ui, sans-serif;
-  font-weight: 200;
 }
 
 body {
@@ -46,7 +38,7 @@ footer {
   text-align: end;
   font-size: 0.85rem;
   color: var(--secondary);
-  background: linear-gradient(-60deg, var(--gradient-1), var(--primary), var(--gradient-2));
+  background: linear-gradient(-60deg, var(--gradient-1-header), var(--gradient-0-header), var(--gradient-2-header));
   background-size: 250% 250%;
   background-position: center;
   box-shadow: 0 -1px 1dvh var(--shadow);
@@ -62,7 +54,7 @@ header {
   flex-direction: column;
   align-items: center;
   color: var(--secondary);
-  background: linear-gradient(-60deg, var(--gradient-1), var(--primary), var(--gradient-2));
+  background: linear-gradient(-60deg, var(--gradient-1-header), var(--gradient-0-header), var(--gradient-2-header));
   background-size: 250% 250%;
   background-position: center;
   box-shadow: 0 1px 1dvh var(--shadow);
@@ -75,7 +67,7 @@ header video {
   width: max(8dvw, 12dvh);
   border-radius: max(1dvw, 1dvh);
   outline: 1px solid var(--secondary);
-  box-shadow: 0 2px max(2dvw, 2dvh) 0 var(--shadow);
+  box-shadow: 0 0 max(2dvw, 2dvh) 2px var(--shadow);
 }
 
 header small {
@@ -99,7 +91,7 @@ h1 {
   width: fit-content;
   font-size: 0.85rem;
   font-size: max(0.85rem, 1.5dvh);
-  font-weight: inherit;
+  font-weight: 185;
   border-radius: 0.5rem;
   padding: 0.1rem 0.75rem;
   margin: 0.5rem 0 0.15rem;
@@ -117,17 +109,23 @@ section ul {
   justify-content: center;
 }
 
+section li a:hover img {
+  transform: scale(1.4);
+}
+
 section.links ul {
   flex-direction: column;
 }
 
 section.links li {
+  font-weight: 320;
   background-color: var(--background-secondary);
   backdrop-filter: blur(10px) saturate(160%) contrast(180%);
   box-shadow: 0 2px max(1dvw, 1dvh) 0 var(--primary);
   width: min(480px, 75%);
   margin: 1.75dvh auto;
   border-radius: 2rem;
+  outline: 1px solid var(--primary);
 }
 
 section.links li:hover {
@@ -149,16 +147,13 @@ section.links li a img {
   width: auto;
 }
 
-section li:hover a img {
-  transform: scale(1.25);
-}
-
 section.socials ul {
   flex-direction: row;
 }
 
 section.socials li {
-  margin: 1rem;
+  background-image: radial-gradient(circle 2.5rem, var(--background-secondary) 1rem, var(--background), transparent);
+  padding: 1.5rem;
 }
 
 section.socials li a {
@@ -167,4 +162,8 @@ section.socials li a {
   justify-content: center;
   padding: 0.5rem;
   border-radius: 2rem;
+}
+
+section.socials li a img {
+  
 }

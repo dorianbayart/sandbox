@@ -7,35 +7,52 @@
     <title>Dorian Bayart - Links</title>
 
     <style>
-      @import url("https://cdn.jsdelivr.net/npm/@xz/fonts/serve/open-sans.min.css");
+      @import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..900');
 
       @media (prefers-color-scheme: light) {
         :root {
+          --main-color: #dddd;
           --primary: #263440;
-          --secondary: #d0f2dc;
-          --background: #a2a694;
-          --background-secondary: #d9b64e;
+          --secondary: #0a110d;
+          --background: #a2a6944d;
+          --background-secondary: #d9b64ecd;
           --shadow: #a65e1f;
-          --gradient-1: cornflowerblue;
-          --gradient-2: darkolivegreen;
+          --gradient-1-header: rgba(100, 149, 237, 0.54); /* cornflowerblue */
+          --gradient-0-header: rgba(128, 1, 12, 0.34);
+          --gradient-2-header: rgba(85, 107, 47, 0.54); /* darkolivegreen */
+          --gradient-1-body: rgba(100, 149, 237, 0.84); /* cornflowerblue */
+          --gradient-2-body: rgba(85, 107, 47, 0.84); /* darkolivegreen */
         }
       }
 
       @media (prefers-color-scheme: dark) {
         :root {
-          --primary: #263440;
+          --main-color: #111d;
+          --primary: #73020c;
           --secondary: #d0f2dc;
-          --background: #a2a694;
-          --background-secondary: #d9b64e;
-          --shadow: #a65e1f;
-          --gradient-1: cornflowerblue;
-          --gradient-2: darkolivegreen;
+          --background: #071633ed;
+          --background-secondary: #d9b64eed; /*#263440*/
+          --shadow: #d9b64e8d;
+          --gradient-1-header: rgba(100, 149, 237, 0.84); /* cornflowerblue */
+          --gradient-0-header: rgba(128, 1, 12, 0.34);
+          --gradient-2-header: rgba(85, 107, 47, 0.84); /* darkolivegreen */
+          --gradient-1-body: rgba(100, 149, 237, 0.84); /* cornflowerblue */
+          --gradient-2-body: rgba(85, 107, 47, 0.84); /* darkolivegreen */
         }
       }
 
+      html {
+        min-height: 100dvh;
+        margin: 0;
+        padding: 0;
+        font-family: 'Roboto Flex', system-ui, sans-serif;
+        font-weight: 120;
+        background-color: var(--main-color);
+      }
       body {
-        background: linear-gradient(-60deg, var(--gradient-1), var(--background), var(--gradient-2));
-        background-size: 400% 400%;
+        background-color: var(--main-color);
+        background: linear-gradient(-70deg, var(--gradient-1-body), var(--background), var(--gradient-2-body));
+        background-size: 250% 100%;
         background-position: center;
       }
       header {
@@ -53,7 +70,7 @@
   <body style="opacity: 0">
     <header style="opacity: 0">
       <video style="opacity: 0" id="profilePicture" width=96 height=96 playsinline autoplay muted loop alt="Animated Profile Picture - Shadowy Super Coder NFT" poster="https://ipfs.io/ipfs/QmZXPtGXK3pikNCRNUvjfaGeTwY5ja5zP2Zd2ZG9Q2zAAh/26.png">
-        <source src="https://ipfs.io/ipfs/QmYzbTvmPUgabLHukU7uDGnSvgTJt5gMkrNHctEbrLVM6h/26.webm" type="video/webm">
+        <source src="https://ipfs.io/ipfs/QmYzbTvmPUgabLHukU7uDGnSvgTJt5gMkrNHctEbrLVM6h/26.webm" type="video/webm" alt="Animated Profile Picture - Shadowy Super Coder NFT">
         <img loading="lazy" src="https://ipfs.io/ipfs/QmZXPtGXK3pikNCRNUvjfaGeTwY5ja5zP2Zd2ZG9Q2zAAh/26.png" alt="Profile Picture - Shadowy Super Coder NFT">
           Your browser does not support the video tag.
       </video>
