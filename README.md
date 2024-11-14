@@ -1,5 +1,5 @@
 # Sandbox
-> Testing different kind of things - technologies - libs. :space_invader:  
+> Testing different kind of things - technologies - libs.
 > Don't try this at home !
 
 
