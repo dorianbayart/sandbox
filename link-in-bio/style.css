@@ -44,6 +44,10 @@ footer {
   box-shadow: 0 -1px 1dvh var(--shadow);
 }
 
+footer:hover {
+  box-shadow: 0 -1px 1dvh 4px var(--shadow);
+}
+
 footer a {
   text-decoration: none;
 }
@@ -60,6 +64,10 @@ header {
   box-shadow: 0 1px 1dvh var(--shadow);
 }
 
+header:hover {
+  box-shadow: 0 1px 1dvh 4px var(--shadow);
+}
+
 header video {
   height: 5rem;
   height: max(8dvw, 12dvh);
@@ -68,6 +76,10 @@ header video {
   border-radius: max(1dvw, 1dvh);
   outline: 1px solid var(--secondary);
   box-shadow: 0 0 max(2dvw, 2dvh) 2px var(--shadow);
+}
+
+header video:hover {
+  box-shadow: 0 0 max(2dvw, 2dvh) 8px var(--shadow);
 }
 
 header small {
@@ -153,7 +165,13 @@ section.socials ul {
 
 section.socials li {
   background-image: radial-gradient(circle 2.5rem, var(--background-secondary) 1rem, var(--background), transparent);
+  background-size: 150% 150%;
+  background-position: center;
   padding: 1.5rem;
+}
+
+section.socials li:hover {
+  background-image: radial-gradient(circle 2.15rem, var(--background-secondary) 1.7rem, var(--primary) 1.75rem, var(--shadow) 1.78rem, transparent);
 }
 
 section.socials li a {
