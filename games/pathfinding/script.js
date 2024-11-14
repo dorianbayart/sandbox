@@ -182,7 +182,7 @@ const draw = async () => {
 
   ctxFront.beginPath()
   ctxFront.arc(mouse.x, mouse.y, 25, 0, 2 * Math.PI)
-  ctxFront.strokeStyle = `hsl(${(mouse.x + mouse.y) % 360}, 0%, 45%)`
+  ctxFront.strokeStyle = `hsl(250, 100%, 45%)`
   ctxFront.stroke()
 
   for (var i = 0; i < blobs.length; i++) {
