@@ -16,7 +16,7 @@ var mouse = {
 }
 
 var map = [], visited = [], toVisit = [], blobs = []
-const maxBlobs = 25, cellSize = 8
+const maxBlobs = 75, cellSize = 8
 
 function Cell (x, y) {
   this.x = x
@@ -27,17 +27,38 @@ function Cell (x, y) {
     this.weight = weight
     visited[this.x][this.y] = true
 
-    if(this.x > 0 && !visited[this.x-1][this.y] && toVisit.findIndex(item => item.x === this.x-1 && item.y === this.y) === -1) {
+    if(this.x > 0 && !visited[this.x-1][this.y]) {
       toVisit.push({ x: this.x-1, y: this.y, w: this.weight+1 })
+      visited[this.x-1][this.y] = true
     }
-    if(this.x < map.length - 1 && !visited[this.x+1][this.y] && toVisit.findIndex(item => item.x === this.x+1 && item.y === this.y) === -1) {
+    if(this.x < map.length - 1 && !visited[this.x+1][this.y]) {
       toVisit.push({ x: this.x+1, y: this.y, w: this.weight+1 })
+      visited[this.x+1][this.y] = true
     }
-    if(this.y > 0 && !visited[this.x][this.y-1] && toVisit.findIndex(item => item.x === this.x && item.y === this.y-1) === -1) {
+    if(this.y > 0 && !visited[this.x][this.y-1]) {
       toVisit.push({ x: this.x, y: this.y-1, w: this.weight+1 })
+      visited[this.x][this.y-1] = true
     }
-    if(this.y < map[0].length - 1 && !visited[this.x][this.y+1] && toVisit.findIndex(item => item.x === this.x && item.y === this.y+1) === -1) {
+    if(this.y < map[0].length - 1 && !visited[this.x][this.y+1]) {
       toVisit.push({ x: this.x, y: this.y+1, w: this.weight+1 })
+      visited[this.x][this.y+1] = true
+    }
+
+    if(this.x > 0 && this.y > 0 && !visited[this.x-1][this.y-1]) {
+      toVisit.push({ x: this.x-1, y: this.y-1, w: this.weight+1.42 })
+      visited[this.x-1][this.y-1] = true
+    }
+    if(this.x > 0 && this.y < map[0].length - 1 && !visited[this.x-1][this.y+1]) {
+      toVisit.push({ x: this.x-1, y: this.y+1, w: this.weight+1.42 })
+      visited[this.x-1][this.y+1] = true
+    }
+    if(this.x < map.length - 1 && this.y < map[0].length - 1 && !visited[this.x+1][this.y+1]) {
+      toVisit.push({ x: this.x+1, y: this.y+1, w: this.weight+1.42 })
+      visited[this.x+1][this.y+1] = true
+    }
+    if(this.x < map.length - 1 && this.y > 0 && !visited[this.x+1][this.y-1]) {
+      toVisit.push({ x: this.x+1, y: this.y-1, w: this.weight+1.42 })
+      visited[this.x+1][this.y-1] = true
     }
   }
 }
@@ -54,7 +75,7 @@ function Blob (x, y, i) {
     if(this.life < 0) return
 
     this.distance = map[this.x] && map[this.x][this.y] ? map[this.x][this.y].weight : 0
-    if(this.distance === 0) return
+    if(this.distance < 2) return
     const rand = Math.random()
     if(rand > .75 && this.x > 0 && map[this.x-1][this.y]?.weight < this.distance && blobs.findIndex(blob => blob.x === this.x-1 && blob.y === this.y) < 0) {
       this.x -= 1
@@ -72,14 +93,7 @@ function Blob (x, y, i) {
       this.y += 1
       return
     }
-    if(blobs.findIndex(blob => blob.x === this.x-1 && blob.y === this.y) < 0
-      && blobs.findIndex(blob => blob.x === this.x+1 && blob.y === this.y) < 0
-      && blobs.findIndex(blob => blob.x === this.x && blob.y === this.y-1) < 0
-      && blobs.findIndex(blob => blob.x === this.x && blob.y === this.y+1) < 0
-    ) {
-      this.update(0)
-      return
-    }
+
     if(rand > .75 && this.x > 0 && this.y > 0 && map[this.x-1][this.y-1]?.weight <= this.distance && blobs.findIndex(blob => blob.x === this.x-1 && blob.y === this.y-1) < 0) {
       this.x -= 1
       this.y -= 1
@@ -140,7 +154,7 @@ const cycleUpdate = (delay) => {
     blobs.push(new Blob(Math.round(Math.random()*map.length), Math.round(Math.random()*map[0].length), blobs.length))
   }
 
-  if(Date.now() - lastMapUpdate > 40) {
+  if(Date.now() - lastMapUpdate > 75) {
     // update pathfinding
     if(map[Math.round(mouse.x/cellSize)][Math.round(mouse.y/cellSize)]?.weight !== 0) {
       visited = Array.from({ length: map.length }, (_, i) => Array.from({ length: map[0].length }, (_, j) => false))
@@ -194,14 +208,14 @@ const draw = async () => {
 
 }
 
-const drawBackground = () => {
+const drawBackground = async () => {
   requestAnimationFrame(drawBackground)
 
   const now = Date.now()
   const delay = now - elapsedForBackground
 
-  if(delay > 120) {
-    if(('ontouchstart' in window || navigator.msMaxTouchPoints) && Math.random() > 0.95) {
+  if(delay > 100) {
+    if(('ontouchstart' in window || navigator.msMaxTouchPoints) && Math.random() > 0.975) {
       mouse.x = Math.round(Math.random() * canvasBack.width)
       mouse.y = Math.round(Math.random() * canvasBack.height)
     }
@@ -213,7 +227,7 @@ const drawBackground = () => {
       for (var j = 0; j < map[0].length; j++) {
         ctxBack.beginPath()
         ctxBack.rect(i*cellSize, j*cellSize, cellSize, cellSize)
-        ctxBack.strokeStyle = `hsl(${(map[i][j]?.weight) % 360}, 100%, 45%)`
+        ctxBack.strokeStyle = `hsl(${(map[i][j]?.weight*1.75) % 360}, 100%, 45%)`
         ctxBack.stroke()
       }
     }
