@@ -1,0 +1,16 @@
+html,
+body {
+  overflow: hidden;
+  cursor: none;
+}
+
+body {
+  overscroll-behavior-y: contain; /* prevents pull-to-refresh on mobile */
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: transparent;
+}

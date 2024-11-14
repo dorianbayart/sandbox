@@ -16,6 +16,9 @@ Playing with canvas - Gravity balls everywhere ! [canvas](canvas)
 ### Boilerplate
 A boilerplate project to start coding on fullscreen canvas: [boilerplate](games/boilerplate)
 
+### Pathfinding
+Pathfinding algorithm: [pathfinding](games/pathfinding)
+
 
 ## Glow/backlight effect
 Display a dynamic glow effect depending on the webcam content: [glow-effect](glow-effect)
