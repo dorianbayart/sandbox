@@ -6,9 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Reveal hidden items progressively
   document.querySelectorAll('*[style="opacity: 0"]').forEach((item, i) => {
-    setTimeout(() => {
-      if(item.tagName !== 'VIDEO') revealObject(item)
-    }, (i+1) * 200)
+    setTimeout(() => revealObject(item), (i+1) * 75)
   })
   
 
