@@ -7,7 +7,9 @@
     <title>Dorian Bayart - Links</title>
     <meta name="description" content="My Link-in-Bio page, from scratch in pure HTML5/CSS3/JS, Dorian Bayart">
 
-    <link rel="shortcut icon" href="assets/26.avif">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="assets/26.png" type="image/png">
+    <link rel="apple-touch-icon" href="assets/26.png" type="image/png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com/css2" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
@@ -47,7 +49,7 @@
         :root { /* Indigo and Gold */
           --main-color: #111d;
           --primary: #D4A54E;
-          --secondary: #B94E11;
+          --secondary: #FFAC7E;
           --background: #2B2F68;
           --background-secondary: #171D40;
           --shadow: #4D9B93;
@@ -88,11 +90,14 @@
     <header style="opacity: 0">
       <video style="opacity: 0" id="profilePicture" width=96 height=96 playsinline autoplay muted loop alt="Animated Profile Picture - Shadowy Super Coder NFT" poster="assets/26.avif">
         <source src="https://ipfs.io/ipfs/QmYzbTvmPUgabLHukU7uDGnSvgTJt5gMkrNHctEbrLVM6h/26.webm" type="video/webm" alt="Animated Profile Picture - Shadowy Super Coder NFT">
-        <img src="assets/26.avif" alt="Profile Picture - Shadowy Super Coder NFT - AVIF">
-        <img src="assets/26.webp" alt="Profile Picture - Shadowy Super Coder NFT - WEBP">
-        <img src="assets/26.png" alt="Profile Picture - Shadowy Super Coder NFT - PNG">
-        <img src="https://ipfs.io/ipfs/QmZXPtGXK3pikNCRNUvjfaGeTwY5ja5zP2Zd2ZG9Q2zAAh/26.png" alt="Profile Picture - Shadowy Super Coder NFT - Original PNG">
-          Your browser does not support the video tag.
+        <img src="assets/26.avif" type="image/avif" alt="Profile Picture - Shadowy Super Coder NFT - AVIF">
+        <p>Your browser does not support the video tag.</p>
+        <p>The original files are here:
+          <ul>
+            <li><a href="https://ipfs.io/ipfs/QmYzbTvmPUgabLHukU7uDGnSvgTJt5gMkrNHctEbrLVM6h/26.webm" target="_blank">Animated Profile Picture - Shadowy Super Coder NFT - webm</a></li>
+            <li><a href="https://ipfs.io/ipfs/QmZXPtGXK3pikNCRNUvjfaGeTwY5ja5zP2Zd2ZG9Q2zAAh/26.png" target="_blank">Profile Picture - Shadowy Super Coder NFT - png</a></li>
+          </ul>
+        </p>
       </video>
       <h1 style="opacity: 0">@DorianBayart</h1>
       <small style="opacity: 0">
