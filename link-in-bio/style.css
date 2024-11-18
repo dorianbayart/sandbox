@@ -95,11 +95,6 @@ header small img {
   width: auto;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
 h1 {
   display: inline-block;
   width: fit-content;
@@ -147,6 +142,7 @@ section.links li:hover {
 }
 
 section.links li a {
+  color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: flex-start;
