@@ -24,24 +24,15 @@ const profilePicture = document.getElementById('profilePicture')
 
 // Periodically check the Video state object to reveal it when it's ready
 const timer = setInterval(() => {
-  if(profilePicture.currentTime > 0 || profilePicture.readyState > 0) {
+  if(profilePicture.currentTime > 0 || profilePicture.readyState > 0 || profilePicture.style.opacity === '1') {
     revealObject(profilePicture)
     clearInterval(timer)
   }
-}, 400)
+}, 80)
 
 const source = document.querySelectorAll('#profilePicture source')[0]
 source.addEventListener('error', () => {
   console.debug('Error Event')
-  const img = document.querySelectorAll('#profilePicture img')[0]
-  img.addEventListener('load', () => {
-    console.debug('Img Loaded Event')
-    revealObject(img.parentElement)
-  })
-})
-
-source.addEventListener('stalled', () => {
-  console.debug('Stalled Event')
   const img = document.querySelectorAll('#profilePicture img')[0]
   img.addEventListener('load', () => {
     console.debug('Img Loaded Event')
