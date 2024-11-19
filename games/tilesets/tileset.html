@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Tileset</title>
+
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        canvas {
+            z-index: 10;
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: auto;
+            width: 100%;
+        }
+
+        #stats {
+            z-index: 100;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            font-family: monospace;
+        }
+    </style>
+
+    <script defer src="tileset.js"></script>
+</head>
+
+<body>
+    <canvas id="backCanvas" width="640" height="960"></canvas>
+    <canvas id="mainCanvas" width="640" height="960"></canvas>
+    <canvas id="uiCanvas" width="640" height="960"></canvas>
+    <div id="stats"></div>
+</body>
+
+</html>
