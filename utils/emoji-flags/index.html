@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert ISO country code to Emoji flag</title>
+    <meta name="description" content="Short code boilerplate to show a small utils function to convert a 2-characters ISO country code to an Emoji flag.">
+
+    <style>
+        html, body {
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: min(0.9rem, 4dvh);
+        }
+
+        h1 {
+            font-family: cursive;
+            margin: 4dvh 4dvw;
+        }
+
+        #converter {
+            display: flex;
+            flex-direction: column;
+            margin: 15dvh auto 0;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #converter > * {
+            margin: min(0.75rem, 2.5dvh);
+        }
+
+        #emoji-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #emoji {
+            font-size: larger;
+        }
+
+        #copyToClipboard {
+            font-size: smaller;
+            margin: 1dvh;
+        }
+    </style>
+
+    <script>
+        'use strict'
+
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Configure input events')
+            document.getElementById('code').addEventListener('keyup', convert)
+            document.getElementById('code').addEventListener('change', convert)
+            document.getElementById('copyToClipboard').addEventListener('click', copyToClipboard)
+
+            convert()
+        })
+
+        const copyToClipboard = async () => {
+            const emoji = document.getElementById('emoji')
+            await navigator.clipboard.writeText(emoji.textContent)
+            document.getElementById('copyToClipboard').innerHTML = 'Copied !'
+            setTimeout(() => document.getElementById('copyToClipboard').innerHTML = 'Copy to clipboard', 1500)
+        }
+
+        const convert = async () => {
+            const code = document.getElementById('code').value
+            if (code) {
+                const emoji = convertIsoCodeToEmoji(code)
+                document.getElementById('emoji').innerHTML = emoji
+                document.getElementById('emoji').style.display = 'block'
+                document.getElementById('helper').style.display = 'none'
+                document.getElementById('copyToClipboard').style.display = 'block'
+            } else {
+                document.getElementById('emoji').style.display = 'none'
+                document.getElementById('helper').style.display = 'block'
+                document.getElementById('copyToClipboard').style.display = 'none'
+            }
+        }
+
+        const convertIsoCodeToEmoji = (code) => {
+            return code
+                .split('')
+                .map(letter => letter.charCodeAt(0) % 32 + 0x1F1E5)
+                .map(n => String.fromCodePoint(n))
+                .join('')
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Convert ISO country code to an Emoji flag</h1>
+    <div id="converter">
+        <label for="code">Input an ISO country code</label>
+        <input type="text" name="code" id="code" placeholder="Country code">
+        <div id="emoji-container">
+            <span id="emoji"></span>
+            <small id="helper">Examples: FR, US, JP</small>
+            <button type="button" id="copyToClipboard">Copy to clipboard</button>
+        </div>
+    </div>
+</body>
+
+</html>
