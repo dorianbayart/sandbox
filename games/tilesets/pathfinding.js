@@ -29,6 +29,7 @@ const bestFirstSearch = (map, startX, startY, endX, endY) => {
     neighbors = neighbors.filter(neighbor => isInBounds(neighbor.x, neighbor.y))
     neighbors = neighbors.filter(neighbor => !isWall(neighbor.x, neighbor.y))
     neighbors = neighbors.filter(neighbor => !closedList.some(node => node.x === neighbor.x && node.y === neighbor.y))
+    neighbors = neighbors.filter(neighbor => !openList.some(node => node.x === neighbor.x && node.y === neighbor.y))
     return neighbors
   }
 
@@ -47,19 +48,21 @@ const bestFirstSearch = (map, startX, startY, endX, endY) => {
     }
 
     if (current.x === endX && current.y === endY) {
+      console.log(closedList)
+      return closedList
       let path = [current]
 
-      while (path[0].weight !== startNode.weight) {
+      while (path[0].x !== startX || path[0].y !== startY) {
         let index = -1
 
-        for (let i = 0; i < openList.length; i++) {
-          if (openList[i].x === path[0].x && openList[i].y === path[0].y) {
+        for (let i = 0; i < closedList.length; i++) {
+          if (closedList[i].x === path[0].x && closedList[i].y === path[0].y) {
             index = i
             break
           }
         }
 
-        path.unshift(openList[index])
+        path.unshift(closedList[index])
       }
 
       return path
@@ -86,6 +89,5 @@ const bestFirstSearch = (map, startX, startY, endX, endY) => {
     // }
   }
 
-  console.log(openList)
   return null
 }
