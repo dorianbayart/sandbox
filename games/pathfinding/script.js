@@ -16,7 +16,7 @@ var mouse = {
 }
 
 var map = [], visited = [], toVisit = [], blobs = []
-const maxBlobs = 75, cellSize = 8
+const maxBlobs = 100, cellSize = 8
 
 function Cell (x, y) {
   this.x = x
@@ -67,19 +67,25 @@ function Cell (x, y) {
 function Blob (x, y, i) {
   this.x = x
   this.y = y
-  this.c = `hsl(${Math.round(Math.random() * 360) % 360}, 100%, 45%)`
+  this.opacity = 1
+  this.hsl = `${(x * y) % 360}, 100%, 45%`
+  this.c = `hsl(${this.hsl}, ${this.opacity})`
   this.distance = canvasFront.width * canvasFront.height
-  this.life = Math.round(Math.random() * 8 + 3) * 1000
-  this.favoriteDirection = Math.floor(Math.random() * 4)
+  this.life = Math.round((x + y) % 10 + 2) * 1000
+  this.favoriteDirection = (x + y) % 4
 
   this.update = (delay) => {
+    this.opacity = this.opacity * (1 - delay/this.life)
+    this.c = `hsl(${this.hsl}, ${this.opacity})`
     this.life -= delay
     if(this.life < 0) return
 
     this.distance = map[this.x] && map[this.x][this.y] ? map[this.x][this.y].weight : 0
     if(this.distance < 1) return
+
+    this.favoriteDirection = (this.x + this.y) % 4
     
-    if(this.favoriteDirection === 0) {
+    if(this.favoriteDirection === 0) { // W E N S
       if(this.x > 0 && map[this.x-1][this.y]?.weight < this.distance && blobs.findIndex(blob => blob.x === this.x-1 && blob.y === this.y) < 0) {
         this.x -= 1
         return
@@ -96,7 +102,7 @@ function Blob (x, y, i) {
         this.y += 1
         return
       }
-    } else if(this.favoriteDirection === 1) {
+    } else if(this.favoriteDirection === 1) { // E N S W
       if(this.x < map.length - 1 && map[this.x+1][this.y]?.weight < this.distance && blobs.findIndex(blob => blob.x === this.x+1 && blob.y === this.y) < 0) {
         this.x += 1
         return
@@ -113,7 +119,7 @@ function Blob (x, y, i) {
         this.x -= 1
         return
       }
-    } else if(this.favoriteDirection === 2) {
+    } else if(this.favoriteDirection === 2) { // N S W E
       if(this.y > 0 && map[this.x][this.y-1]?.weight < this.distance && blobs.findIndex(blob => blob.x === this.x && blob.y === this.y-1) < 0) {
         this.y -= 1
         return
@@ -130,7 +136,7 @@ function Blob (x, y, i) {
         this.x += 1
         return
       }
-    } else {
+    } else { // S W E N
       if(this.y < map[0].length - 1 && map[this.x][this.y+1]?.weight < this.distance && blobs.findIndex(blob => blob.x === this.x && blob.y === this.y+1) < 0) {
         this.y += 1
         return
@@ -152,21 +158,25 @@ function Blob (x, y, i) {
 
     const rand = Math.random()
     if(rand > .75 && this.x > 0 && this.y > 0 && map[this.x-1][this.y-1]?.weight <= this.distance && blobs.findIndex(blob => blob.x === this.x-1 && blob.y === this.y-1) < 0) {
+      // NW
       this.x -= 1
       this.y -= 1
       return
     }
     if(rand > .5 && this.x < map.length - 1 && this.y > 0 && map[this.x+1][this.y-1]?.weight <= this.distance && blobs.findIndex(blob => blob.x === this.x+1 && blob.y === this.y-1) < 0) {
+      // NE
       this.x += 1
       this.y -= 1
       return
     }
     if(rand > .25 && this.x < map.length - 1 && this.y < map[0].length - 1 && map[this.x+1][this.y+1]?.weight <= this.distance && blobs.findIndex(blob => blob.x === this.x+1 && blob.y === this.y+1) < 0) {
+      // SE
       this.x += 1
       this.y += 1
       return
     }
     if(this.x > 0 && this.y < map[0].length - 1 && map[this.x-1][this.y+1]?.weight <= this.distance && blobs.findIndex(blob => blob.x === this.x-1 && blob.y === this.y+1) < 0) {
+      // SW
       this.x -= 1
       this.y += 1
       return
@@ -189,13 +199,12 @@ const resizeEvent = async () => {
 }
 
 const cycleUpdate = (delay) => {
+  if(blobs.length < maxBlobs && Math.random() > 0.5) {
+    blobs.push(new Blob(Math.round(Math.random()*map.length), Math.round(Math.random()*map[0].length), blobs.length))
+  }
+
   // Update Map sometimes
   if(Date.now() - lastMapUpdate > 100 || map[0][0] === -1) {
-
-    if(blobs.length < maxBlobs) {
-      blobs.push(new Blob(Math.round(Math.random()*map.length), Math.round(Math.random()*map[0].length), blobs.length))
-    }
-
     // update pathfinding
     if(!map[Math.round(mouse.x/cellSize)] || map[Math.round(mouse.x/cellSize)][Math.round(mouse.y/cellSize)]?.weight !== 0 || map[0][0] === -1) {
       visited = Array.from({ length: map.length }, (_, i) => Array.from({ length: map[0].length }, (_, j) => false))
