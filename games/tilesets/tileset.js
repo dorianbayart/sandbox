@@ -1,20 +1,28 @@
 'use script'
 
 const backCanvas = document.getElementById('backCanvas')
-const backCtx = backCanvas.getContext('2d')
+const backCtx = setupCanvas(backCanvas)
 const mainCanvas = document.getElementById('mainCanvas')
-const mainCtx = mainCanvas.getContext('2d')
+const mainCtx = setupCanvas(mainCanvas)
 const uiCanvas = document.getElementById('uiCanvas')
-const uiCtx = uiCanvas.getContext('2d')
+const uiCtx = setupCanvas(uiCanvas)
+
+const offCanvas = document.createElement('canvas')
+const offCtx = setupCanvas(offCanvas, backCanvas)
 
 const spriteSize = 16
-const MAP_WIDTH = backCanvas.width / spriteSize
-const MAP_HEIGHT = backCanvas.height / spriteSize
-const map = new Array(MAP_WIDTH).fill(null).map(() =>
-  new Array(MAP_HEIGHT).fill(null)
-  )
+const MAP_WIDTH = 40
+const MAP_HEIGHT = 40
+const MAX_WEIGHT = 99999999
+const map = new Array(MAP_WIDTH).fill(null).map(() => new Array(MAP_HEIGHT).fill(null))
 
-let sprites, elapsed = elapsedBack = elapsedUI = Date.now(), fps = 50, speed = 25
+let sprites, elapsed = elapsedBack = elapsedUI = performance.now(), fps = 50, speed = 25
+
+let spriteCoords_Start = { x: 21, y: 5 }
+let spriteCoords_End = { x: 22, y: 4 }
+
+const units = []
+const MAX_UNITS = 12
 
 const loadAndSplitImage = (url) => {
   return new Promise((resolve, reject) => {
@@ -37,94 +45,146 @@ const loadAndSplitImage = (url) => {
       for (let x = 0; x < image.width / spriteSize; x++) {
         for (let y = 0; y < image.height / spriteSize; y++) {
           sprites[x][y] = ctx.getImageData(x * spriteSize, y * spriteSize, spriteSize, spriteSize)
+        }
       }
-  }
 
       resolve(sprites/*.filter(sprite => sprite.data.reduce((r, c) => r + c))*/)
-}
+    }
 
-image.onerror = reject
-image.src = url
-})
+    image.onerror = reject
+    image.src = url
+  })
 }
 
 const generateMap = () => {
-    for (var x = 0; x < MAP_WIDTH; x++) {
-        for (var y= 0; y < MAP_HEIGHT; y++) {
-            if(Math.random() < 0.75) {
-                map[x][y] = {
-                    weight: 1,
-                    sprite: sprites[Math.floor(Math.random()*3)][Math.floor(Math.random()*3)],
-                    back: null
-                }
-            } else {
-                map[x][y] = {
-                    weight: 99999999,
-                    sprite: sprites[Math.floor(Math.random()*2+2)][Math.floor(Math.random()*2)+26],
-                    back: sprites[Math.floor(Math.random()*3)][Math.floor(Math.random()*3)]
-                }
-            }
+  for (var x = 0; x < MAP_WIDTH; x++) {
+    for (var y= 0; y < MAP_HEIGHT; y++) {
+      const random = Math.random()
+      if(y === 0 && random > 0.85) {
+        map[x][y] = {
+          weight: -2,
+          sprite: sprites[spriteCoords_End.x][spriteCoords_End.y],
+          back: sprites[Math.floor(Math.random()*3)][Math.floor(Math.random()*3)]
         }
+      }
+      else if(random > 0.25) {
+        map[x][y] = {
+          weight: 1,
+          sprite: sprites[Math.floor(Math.random()*3)][Math.floor(Math.random()*3)],
+          back: null
+        }
+      } else {
+        map[x][y] = {
+          weight: MAX_WEIGHT,
+          sprite: sprites[Math.floor(Math.random()*2+2)][Math.floor(Math.random()*2)+26],
+          back: sprites[Math.floor(Math.random()*3)][Math.floor(Math.random()*3)]
+        }
+      }
     }
+  }
 }
 
 const drawMain = (delay) => {
   mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
 
+  units.forEach((unit, i) => {
+    mainCtx.putImageData(unit.sprite, unit.x * spriteSize, unit.y * spriteSize)
+  })
+
 }
 
 
 const drawBack = (delay) => {
-    const offCanvas = document.createElement('canvas')
-    const offCtx = offCanvas.getContext('2d')
-    offCanvas.width = backCanvas.width
-    offCanvas.height = backCanvas.height
-    
-    backCtx.clearRect(0, 0, backCanvas.width, backCanvas.height)
+  backCtx.clearRect(0, 0, backCanvas.width, backCanvas.height)
+  offCtx.clearRect(0, 0, backCanvas.width, backCanvas.height)
 
-    for (let x = 0; x < MAP_WIDTH; x++) {
-        for (let y = 0; y < MAP_HEIGHT; y++) {
-            if(map[x][y].back) backCtx.putImageData(map[x][y].back, x * spriteSize, y * spriteSize)
-                offCtx.putImageData(map[x][y].sprite, x * spriteSize, y * spriteSize)
-        }
+  for (let x = 0; x < MAP_WIDTH; x++) {
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+      if(map[x][y].back) backCtx.putImageData(map[x][y].back, x * spriteSize, y * spriteSize)
+      offCtx.putImageData(map[x][y].sprite, x * spriteSize, y * spriteSize)
     }
-    backCtx.drawImage(offCanvas, 0, 0)
+  }
+  backCtx.drawImage(offCanvas, 0, 0, backCanvas.width, backCanvas.height)
+
+  console.log(backCanvas.width, offCanvas.width)
 }
 
 const ui = (delay) => {
-    document.getElementById('stats').innerHTML = `FPS: ${fps}`
+  document.getElementById('stats').innerHTML = `FPS: ${fps}`
+}
+
+const createUnit = () => {
+  let x = Math.floor(Math.random()*MAP_WIDTH)
+  while(map[x][MAP_HEIGHT-1].weight === MAX_WEIGHT) {
+    x = Math.floor(Math.random()*MAP_WIDTH)
+  }
+  units.push({
+    x: x,
+    y: MAP_HEIGHT-1,
+    sprite: sprites[spriteCoords_Start.x][spriteCoords_Start.y]
+  })
 }
 
 const gameLoop = () => {
   requestAnimationFrame(gameLoop);
 
-  const now = Date.now()
+  const now = performance.now()
   const delay = now - elapsed
   elapsed = now
+  drawMain(delay)
 
   if(now - elapsedBack > 400) {
     elapsedBack = now
     drawBack(now - elapsedBack)
-}
 
-if(now - elapsedUI > 150) {
+    if(units.length < MAX_UNITS && Math.random() > 0.9) {
+      createUnit()
+    }
+  }
+
+  if(now - elapsedUI > 150) {
     elapsedUI = now
     fps = Math.round((fps*49 + 1000/delay)) / 50
     ui(now - elapsedUI)
-}
+  }
 
 }
 
 
-loadAndSplitImage('./punyworld-overworld-tileset.png'/*, 432, 1040*/)
-.then(spritesArray => {
-    sprites = spritesArray
+// the real "main" of the game
+onload = async (e) => {
+  onresize()
 
-    //map = Array.from({ length: Math.round(canvasFront.width/cellSize) }, (_, i) => Array.from({ length: Math.round(canvasFront.height/cellSize) }, (_, j) => new Cell(i, j)))
-    generateMap()
+  loadAndSplitImage('./punyworld-overworld-tileset.png')
+    .then(spritesArray => {
+      sprites = spritesArray
 
-    gameLoop()
-})
-.catch(error => {
-    console.error('Error loading and splitting image:', error)
-})
+      generateMap()
+
+      gameLoop()
+    })
+    .catch(error => {
+      console.error('Error loading and splitting image:', error)
+    })
+
+};
+
+onresize = onrotate = () => {
+  // scale canvas to fit screen while maintaining aspect ratio
+  scaleToFit = Math.min(innerWidth / mainCanvas.width, innerHeight / mainCanvas.height)
+
+  mainCanvas.width = mainCanvas.width * scaleToFit
+  mainCanvas.height = mainCanvas.height * scaleToFit
+  backCanvas.width = mainCanvas.width
+  backCanvas.height = mainCanvas.height
+  uiCanvas.width = mainCanvas.width
+  uiCanvas.height = mainCanvas.height
+  offCanvas.width = mainCanvas.width
+  offCanvas.height = mainCanvas.height
+
+  // disable smoothing on image scaling
+  mainCtx.imageSmoothingEnabled = backCtx.imageSmoothingEnabled = uiCtx.imageSmoothingEnabled = offCtx.imageSmoothingEnabled = false
+
+  // fix key events not received on itch.io when game loads in full screen
+  window.focus()
+};

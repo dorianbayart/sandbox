@@ -19,6 +19,9 @@ A boilerplate project to start coding on fullscreen canvas: [boilerplate](games/
 ### Pathfinding
 Pathfinding algorithm: [pathfinding](games/pathfinding)
 
+### Tilesets
+Spli tileset into many sprites and build a map: [tilesets](games/tilesets)
+
 
 ## Glow/backlight effect
 Display a dynamic glow effect depending on the webcam content: [glow-effect](glow-effect)
