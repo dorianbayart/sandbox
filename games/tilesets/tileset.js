@@ -23,7 +23,7 @@ let spriteCoords_End = { x: 22, y: 4 }
 let spriteCoords_Path = { x: 22, y: 5 }
 
 const units = []
-const MAX_UNITS = 5
+const MAX_UNITS = 4
 const enemies = []
 
 const loadAndSplitImage = (url) => {
@@ -91,6 +91,13 @@ const drawMain = (delay) => {
   mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
 
   units.forEach((unit, i) => {
+    // Display path of the unit
+    (unit.path || []).forEach((path, i) => {
+      mainCtx.putImageData(sprites[spriteCoords_Path.x][spriteCoords_Path.y], path.x * spriteSize, path.y * spriteSize)
+    })
+  })
+  units.forEach((unit, i) => {
+    // Display the unit
     mainCtx.putImageData(unit.sprite, unit.x * spriteSize, unit.y * spriteSize)
   })
 
@@ -101,8 +108,6 @@ const drawBack = (delay) => {
   backCtx.clearRect(0, 0, backCanvas.width, backCanvas.height)
   offCtx.clearRect(0, 0, backCanvas.width, backCanvas.height)
 
-
-
   for (let x = 0; x < MAP_WIDTH; x++) {
     for (let y = 0; y < MAP_HEIGHT; y++) {
       if(map[x][y].back) backCtx.putImageData(map[x][y].back, x * spriteSize, y * spriteSize)
@@ -110,15 +115,7 @@ const drawBack = (delay) => {
     }
   }
 
-  units.forEach((unit, i) => {
-    (unit.path || []).forEach((path, i) => {
-      offCtx.putImageData(sprites[spriteCoords_Path.x][spriteCoords_Path.y], path.x * spriteSize, path.y * spriteSize)
-    })
-  })
-
   backCtx.drawImage(offCanvas, 0, 0, backCanvas.width, backCanvas.height)
-
-  console.log(backCanvas.width, offCanvas.width)
 }
 
 const ui = (delay) => {
@@ -131,25 +128,39 @@ const createUnit = () => {
     x = Math.floor(Math.random()*MAP_WIDTH)
   }
 
-  let path, pathLength = MAP_WIDTH * MAP_HEIGHT
-  enemies.forEach((enemy, i) => {
-    const temp = bestFirstSearch(map, x, MAP_HEIGHT-1, enemy.x, enemy.y)
-    if(temp?.length < pathLength) {
-      path = temp
-      pathLength = path.length
-    }
-  })
+
 
   units.push({
     x: x,
     y: MAP_HEIGHT-1,
     sprite: sprites[spriteCoords_Start.x][spriteCoords_Start.y],
-    path: path
+    path: []
   })
 }
 
 const gameLoop = () => {
   requestAnimationFrame(gameLoop);
+
+  for (var i = 0; i < units.length; i++) {
+    const unit = units[i]
+    let path, pathLength = MAP_WIDTH * MAP_HEIGHT
+    enemies.forEach((enemy, i) => {
+      const temp = bestFirstSearch(map, unit.x, unit.y, enemy.x, enemy.y)
+      if(temp?.length < pathLength) {
+        path = temp
+        pathLength = path.length
+      }
+    })
+    unit.path = path
+    if(!path || path.length === 1) {
+      units.splice(i, 1)
+      i--
+    } else {
+      unit.x = path[1].x
+      unit.y = path[1].y
+    }
+  }
+
 
   const now = performance.now()
   const delay = now - elapsed
@@ -160,7 +171,7 @@ const gameLoop = () => {
     elapsedBack = now
     drawBack(now - elapsedBack)
 
-    if(units.length < MAX_UNITS && Math.random() > 0.9) {
+    if((units.length < MAX_UNITS && Math.random() > 0.5) || units.length === 0) {
       createUnit()
     }
   }

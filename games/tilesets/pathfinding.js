@@ -48,23 +48,14 @@ const bestFirstSearch = (map, startX, startY, endX, endY) => {
     }
 
     if (current.x === endX && current.y === endY) {
-      console.log(closedList)
-      return closedList
       let path = [current]
 
       while (path[0].x !== startX || path[0].y !== startY) {
-        let index = -1
-
-        for (let i = 0; i < closedList.length; i++) {
-          if (closedList[i].x === path[0].x && closedList[i].y === path[0].y) {
-            index = i
-            break
-          }
-        }
-
-        path.unshift(closedList[index])
+        const item = closedList.find(i => getHeuristic(i, path[0]) === 1)
+        path.unshift(item)
       }
 
+      // console.log(path)
       return path
     }
 
@@ -72,21 +63,6 @@ const bestFirstSearch = (map, startX, startY, endX, endY) => {
     closedList.push(current)
 
     openList.push(...neighbors(current.x, current.y))
-
-    // for (let x = -1; x <= 1; x++) {
-    //   for (let y = -1; y <= 1; y++) {
-    //     let nx = current.x + x
-    //     let ny = current.y + y
-    //
-    //     if (isInBounds(nx, ny) && !isWall(nx, ny)) {
-    //       let weight = map[ny][nx].weight
-    //
-    //       if (!closedList.some(node => node.x === nx && node.y === ny)) {
-    //         openList.push({ x: nx, y: ny, weight: weight })
-    //       }
-    //     }
-    //   }
-    // }
   }
 
   return null
