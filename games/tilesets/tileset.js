@@ -10,21 +10,109 @@ const uiCtx = setupCanvas(uiCanvas)
 const offCanvas = document.createElement('canvas')
 const offCtx = setupCanvas(offCanvas, backCanvas)
 
-const spriteSize = 16
+
+/****************/
+/*  DEBUG MODE  */
+/****************/
+const DEBUG = true
+
+
+const SPRITE_SIZE = 16
 const MAP_WIDTH = 40
 const MAP_HEIGHT = 40
 const MAX_WEIGHT = 99999999
 const map = new Array(MAP_WIDTH).fill(null).map(() => new Array(MAP_HEIGHT).fill(null))
 
-let sprites, elapsed = elapsedBack = elapsedUI = performance.now(), fps = 50, speed = 25
+let sprites, elapsed = elapsedBack = elapsedUI = 0, fps = 60
+let isDrawBackRequested = true
 
 let spriteCoords_Start = { x: 21, y: 5 }
 let spriteCoords_End = { x: 22, y: 4 }
 let spriteCoords_Path = { x: 22, y: 5 }
 
 const units = []
-const MAX_UNITS = 4
+const MAX_UNITS = 10
 const enemies = []
+
+class Unit {
+  constructor(x, y, sprite) {
+    if(x) {
+      this.x = x
+    } else {
+      this.x = Math.floor(Math.random()*MAP_WIDTH)
+      while(map[this.x][MAP_HEIGHT-1].weight === MAX_WEIGHT) {
+        this.x = Math.floor(Math.random()*MAP_WIDTH)
+      }
+      this.x *= SPRITE_SIZE
+    }
+
+    this.y = y ?? ((MAP_HEIGHT-1) * SPRITE_SIZE)
+    this.currentNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
+    this.nextNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
+    this.sprite = sprite ?? sprites[spriteCoords_Start.x][spriteCoords_Start.y]
+    this.path = this.pathToNearestEnemy()
+    this.lastMoveUpdate = 0
+    this.lastPathUpdate = 0
+    this.goal = null
+    this.life = 1
+    this.speed = 8 + (this.x + this.y)%10
+  }
+
+  update(delay) {
+    const time = performance.now()
+
+    // Update Path
+    if((this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y)) {
+      if(time - this.lastPathUpdate > 1000) {
+        this.lastPathUpdate = time
+
+        this.path = this.pathToNearestEnemy()
+        if(!this.path || this.path.length === 1) {
+          this.life = 0
+          return
+        }
+
+        this.nextNode.x = this.path[1].x
+        this.nextNode.y = this.path[1].y
+      } else {
+        const i = this.path?.findIndex(node => node.x === this.currentNode.x && node.y === this.currentNode.y)
+        if(this.path[i+1]) {
+          this.nextNode.x = this.path[i + 1].x
+          this.nextNode.y = this.path[i + 1].y
+        }
+      }
+
+      isDrawBackRequested = true
+    }
+
+    this.lastMoveUpdate = time
+    this.move(delay)
+  }
+
+  pathToNearestEnemy() {
+    let path, pathLength = MAP_WIDTH * MAP_HEIGHT
+    enemies.forEach((enemy, i) => {
+      const temp = bestFirstSearch(map, this.currentNode.x, this.currentNode.y, enemy.x, enemy.y)
+      if(temp?.length < pathLength) {
+        path = temp
+        pathLength = path.length
+        this.goal = enemy
+      }
+    })
+    return path
+  }
+
+  move(delay) {
+    this.x += (this.nextNode.x * SPRITE_SIZE - this.x) / 2 * this.speed * (delay/1000)
+    this.y += (this.nextNode.y * SPRITE_SIZE - this.y) / 2 * this.speed * (delay/1000)
+
+    if(Math.hypot(this.nextNode.x*SPRITE_SIZE - this.x, this.nextNode.y*SPRITE_SIZE - this.y) < SPRITE_SIZE/4) {
+      this.currentNode.x = this.nextNode.x
+      this.currentNode.y = this.nextNode.y
+    }
+
+  }
+}
 
 const loadAndSplitImage = (url) => {
   return new Promise((resolve, reject) => {
@@ -40,13 +128,12 @@ const loadAndSplitImage = (url) => {
       ctx.drawImage(image, 0, 0)
 
       const spriteSheet = ctx.getImageData(0, 0, image.width, image.height)
-      //console.log(canvas.toDataURL())
-      const sprites = Array.from({ length: Math.round(image.width/spriteSize) }, (_, i) => Array.from({ length: Math.round(image.height/spriteSize) }, (_, j) => 0))
+      const sprites = Array.from({ length: Math.round(image.width/SPRITE_SIZE) }, (_, i) => Array.from({ length: Math.round(image.height/SPRITE_SIZE) }, (_, j) => 0))
 
-      // Split the image into smaller subimages of spriteSizexspriteSize pixels
-      for (let x = 0; x < image.width / spriteSize; x++) {
-        for (let y = 0; y < image.height / spriteSize; y++) {
-          sprites[x][y] = ctx.getImageData(x * spriteSize, y * spriteSize, spriteSize, spriteSize)
+      // Split the image into smaller subimages of SPRITE_SIZExSPRITE_SIZE pixels
+      for (let x = 0; x < image.width / SPRITE_SIZE; x++) {
+        for (let y = 0; y < image.height / SPRITE_SIZE; y++) {
+          sprites[x][y] = ctx.getImageData(x * SPRITE_SIZE, y * SPRITE_SIZE, SPRITE_SIZE, SPRITE_SIZE)
         }
       }
 
@@ -91,14 +178,8 @@ const drawMain = (delay) => {
   mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
 
   units.forEach((unit, i) => {
-    // Display path of the unit
-    (unit.path || []).forEach((path, i) => {
-      mainCtx.putImageData(sprites[spriteCoords_Path.x][spriteCoords_Path.y], path.x * spriteSize, path.y * spriteSize)
-    })
-  })
-  units.forEach((unit, i) => {
     // Display the unit
-    mainCtx.putImageData(unit.sprite, unit.x * spriteSize, unit.y * spriteSize)
+    mainCtx.putImageData(unit.sprite, Math.round(unit.x), Math.round(unit.y))
   })
 
 }
@@ -110,78 +191,71 @@ const drawBack = (delay) => {
 
   for (let x = 0; x < MAP_WIDTH; x++) {
     for (let y = 0; y < MAP_HEIGHT; y++) {
-      if(map[x][y].back) backCtx.putImageData(map[x][y].back, x * spriteSize, y * spriteSize)
-      offCtx.putImageData(map[x][y].sprite, x * spriteSize, y * spriteSize)
+      if(map[x][y].back) backCtx.putImageData(map[x][y].back, x * SPRITE_SIZE, y * SPRITE_SIZE)
+      offCtx.putImageData(map[x][y].sprite, x * SPRITE_SIZE, y * SPRITE_SIZE)
     }
   }
 
   backCtx.drawImage(offCanvas, 0, 0, backCanvas.width, backCanvas.height)
+
+  if(DEBUG) { // Display paths of the all units
+    offCtx.clearRect(0, 0, backCanvas.width, backCanvas.height)
+    units.forEach((unit, i) => {
+      for (var i = 1; i < (unit.path || []).length; i++) {
+        offCtx.putImageData(sprites[spriteCoords_Path.x][spriteCoords_Path.y], unit.path[i].x * SPRITE_SIZE, unit.path[i].y * SPRITE_SIZE)
+      }
+    })
+    backCtx.drawImage(offCanvas, 0, 0, backCanvas.width, backCanvas.height)
+  }
+
 }
 
 const ui = (delay) => {
-  document.getElementById('stats').innerHTML = `FPS: ${fps}`
-}
-
-const createUnit = () => {
-  let x = Math.floor(Math.random()*MAP_WIDTH)
-  while(map[x][MAP_HEIGHT-1].weight === MAX_WEIGHT) {
-    x = Math.floor(Math.random()*MAP_WIDTH)
-  }
-
-
-
-  units.push({
-    x: x,
-    y: MAP_HEIGHT-1,
-    sprite: sprites[spriteCoords_Start.x][spriteCoords_Start.y],
-    path: []
-  })
+  document.getElementById('stats').innerHTML = `FPS: ${fps.toFixed(1)}`
 }
 
 const gameLoop = () => {
   requestAnimationFrame(gameLoop);
 
-  for (var i = 0; i < units.length; i++) {
-    const unit = units[i]
-    let path, pathLength = MAP_WIDTH * MAP_HEIGHT
-    enemies.forEach((enemy, i) => {
-      const temp = bestFirstSearch(map, unit.x, unit.y, enemy.x, enemy.y)
-      if(temp?.length < pathLength) {
-        path = temp
-        pathLength = path.length
-      }
-    })
-    unit.path = path
-    if(!path || path.length === 1) {
-      units.splice(i, 1)
-      i--
-    } else {
-      unit.x = path[1].x
-      unit.y = path[1].y
-    }
-  }
-
-
   const now = performance.now()
   const delay = now - elapsed
   elapsed = now
-  drawMain(delay)
 
-  if(now - elapsedBack > 400) {
+
+  if(now - elapsedBack > 1000 || isDrawBackRequested) {
+    isDrawBackRequested = false
     elapsedBack = now
     drawBack(now - elapsedBack)
+  }
 
-    if((units.length < MAX_UNITS && Math.random() > 0.5) || units.length === 0) {
-      createUnit()
+  
+
+  // Update units
+  for (var i = 0; i < units.length; i++) {
+    units[i].update(delay)
+    if(units[i].life === 0) {
+      units.splice(i, 1)
+      i--
     }
   }
 
-  if(now - elapsedUI > 150) {
-    elapsedUI = now
-    fps = Math.round((fps*49 + 1000/delay)) / 50
-    ui(now - elapsedUI)
+  // Create new units if needed
+  if((units.length < MAX_UNITS && Math.random() > 0.99) || units.length === 0) {
+    units.push(new Unit())
   }
 
+
+
+
+
+
+  //if(now - elapsedUI > 150) {
+    elapsedUI = now
+    fps = Math.round((fps*99 + 1000/delay)) / 100
+    ui(now - elapsedUI)
+  //}
+
+  drawMain(delay)
 }
 
 
@@ -223,6 +297,8 @@ onresize = onrotate = () => {
 
   // disable smoothing on image scaling
   mainCtx.imageSmoothingEnabled = backCtx.imageSmoothingEnabled = uiCtx.imageSmoothingEnabled = offCtx.imageSmoothingEnabled = false
+
+  isDrawBackRequested = true
 
   // fix key events not received on itch.io when game loads in full screen
   window.focus()
