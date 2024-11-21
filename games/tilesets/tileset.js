@@ -205,16 +205,21 @@ onload = async (e) => {
 
 onresize = onrotate = () => {
   // scale canvas to fit screen while maintaining aspect ratio
-  scaleToFit = Math.min(innerWidth / mainCanvas.width, innerHeight / mainCanvas.height)
-
-  mainCanvas.width = mainCanvas.width * scaleToFit
-  mainCanvas.height = mainCanvas.height * scaleToFit
-  backCanvas.width = mainCanvas.width
-  backCanvas.height = mainCanvas.height
-  uiCanvas.width = mainCanvas.width
-  uiCanvas.height = mainCanvas.height
-  offCanvas.width = mainCanvas.width
-  offCanvas.height = mainCanvas.height
+  // scaleToFit = Math.min(innerWidth / mainCanvas.width, innerHeight / mainCanvas.height)
+  //
+  // mainCanvas.width = mainCanvas.width * scaleToFit
+  // mainCanvas.height = mainCanvas.height * scaleToFit
+  // backCanvas.width = mainCanvas.width
+  // backCanvas.height = mainCanvas.height
+  // uiCanvas.width = mainCanvas.width
+  // uiCanvas.height = mainCanvas.height
+  // offCanvas.width = mainCanvas.width
+  // offCanvas.height = mainCanvas.height
+  const pixels = Math.max(innerWidth, innerHeight)
+  mainCanvas.width = mainCanvas.height = pixels
+  backCanvas.width = backCanvas.height = pixels
+  uiCanvas.width = uiCanvas.height = pixels
+  offCanvas.width = offCanvas.height = pixels
 
   // disable smoothing on image scaling
   mainCtx.imageSmoothingEnabled = backCtx.imageSmoothingEnabled = uiCtx.imageSmoothingEnabled = offCtx.imageSmoothingEnabled = false
