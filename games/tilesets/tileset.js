@@ -189,7 +189,7 @@ const gameLoop = () => {
 onload = async (e) => {
   onresize()
 
-  loadAndSplitImage('./punyworld-overworld-tileset.png')
+  loadAndSplitImage('./assets/punyworld-overworld-tileset.png')
     .then(spritesArray => {
       sprites = spritesArray
 
