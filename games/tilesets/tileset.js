@@ -276,15 +276,15 @@ onresize = onrotate = async () => {
 
   // Account for Device Pixel Ratio (DPR)
   dpr = globalThis.devicePixelRatio || 1; // Fallback for older browsers
-  mainCanvas.width = backCanvas.width = uiCanvas.width = offCanvas1.width = offCanvas2.width = MAP_WIDTH * SPRITE_SIZE * dpr
-  mainCanvas.height = backCanvas.height = uiCanvas.height = offCanvas1.height = offCanvas2.height = MAP_HEIGHT * SPRITE_SIZE * dpr
+  mainCanvas.width = backCanvas.width = uiCanvas.width = offCanvas1.width = offCanvas2.width = MAP_WIDTH * SPRITE_SIZE // * dpr
+  mainCanvas.height = backCanvas.height = uiCanvas.height = offCanvas1.height = offCanvas2.height = MAP_HEIGHT * SPRITE_SIZE // * dpr
 
   // To ensure proper scaling (no blurriness), scale the context
-  mainCtx.scale(dpr, dpr)
-  backCtx.scale(dpr, dpr)
-  uiCtx.scale(dpr, dpr)
-  offCtx1.scale(dpr, dpr)
-  offCtx2.scale(dpr, dpr)
+  // mainCtx.scale(dpr, dpr)
+  // backCtx.scale(dpr, dpr)
+  // uiCtx.scale(dpr, dpr)
+  // offCtx1.scale(dpr, dpr)
+  // offCtx2.scale(dpr, dpr)
 
   // Now, update your canvas to fit the screen visually (CSS pixels)
   mainCanvas.style.width = backCanvas.style.width = uiCanvas.style.width = `${canvasWidth}px`
