@@ -26,11 +26,13 @@ const bestFirstSearch = (map, startX, startY, endX, endY) => {
       { x: x, y: y+1, weight: map[x][y+1]?.weight }
     ] // E W N S
     if ((x + y) % 2 == 0) neighbors.reverse() // S N W E
-    neighbors = neighbors.filter(neighbor => isInBounds(neighbor.x, neighbor.y))
-    neighbors = neighbors.filter(neighbor => !isWall(neighbor.x, neighbor.y))
-    neighbors = neighbors.filter(neighbor => !closedList.some(node => node.x === neighbor.x && node.y === neighbor.y))
-    neighbors = neighbors.filter(neighbor => !openList.some(node => node.x === neighbor.x && node.y === neighbor.y))
-    return neighbors
+
+    return neighbors.filter(neighbor =>
+          isInBounds(neighbor.x, neighbor.y)
+      &&  !isWall(neighbor.x, neighbor.y)
+      &&  !openList.some(node => node.x === neighbor.x && node.y === neighbor.y)
+      &&  !closedList.some(node => node.x === neighbor.x && node.y === neighbor.y)
+    )
   }
 
   let startNode = { x: startX, y: startY, weight: map[startY][startX].weight }
