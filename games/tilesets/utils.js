@@ -1,25 +1,32 @@
 'use strict'
 
+const loadAndSplitImage = (url, spriteSize) => {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.crossOrigin = 'anonymous'
 
-const setupCanvas = (canvas, canvasRef) => {
-  // Get the device pixel ratio, falling back to 1.
-  var dpr = window.devicePixelRatio || 1;
+    image.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = image.width
+      canvas.height = image.height
 
-  if(canvasRef) {
-    canvas.width = canvasRef.width;
-    canvas.height = canvasRef.height;
-  } else {
-    // Get the size of the canvas in CSS pixels.
-    var rect = (canvasRef ?? canvas).getBoundingClientRect();
-    // Give the canvas pixel dimensions of their CSS
-    // size * the device pixel ratio.
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-  }
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(image, 0, 0)
 
-  var ctx = canvas.getContext('2d');
-  // Scale all drawing operations by the dpr, so you
-  // don't have to worry about the difference.
-  ctx.scale(dpr, dpr);
-  return ctx;
+      const spriteSheet = ctx.getImageData(0, 0, image.width, image.height)
+      const sprites = Array.from({ length: Math.round(image.width/spriteSize) }, (_, i) => Array.from({ length: Math.round(image.height/spriteSize) }, (_, j) => 0))
+
+      // Split the image into smaller subimages of spriteSizexspriteSize pixels
+      for (let x = 0; x < image.width / spriteSize; x++) {
+        for (let y = 0; y < image.height / spriteSize; y++) {
+          sprites[x][y] = ctx.getImageData(x * spriteSize, y * spriteSize, spriteSize, spriteSize)
+        }
+      }
+
+      resolve(sprites/*.filter(sprite => sprite.data.reduce((r, c) => r + c))*/)
+    }
+
+    image.onerror = reject
+    image.src = url
+  })
 }

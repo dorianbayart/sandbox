@@ -1,14 +1,17 @@
 'use script'
 
 const backCanvas = document.getElementById('backCanvas')
-const backCtx = setupCanvas(backCanvas)
+const backCtx = backCanvas.getContext('2d')
 const mainCanvas = document.getElementById('mainCanvas')
-const mainCtx = setupCanvas(mainCanvas)
+const mainCtx = mainCanvas.getContext('2d')
 const uiCanvas = document.getElementById('uiCanvas')
-const uiCtx = setupCanvas(uiCanvas)
+const uiCtx = uiCanvas.getContext('2d')
 
-const offCanvas = document.createElement('canvas')
-const offCtx = setupCanvas(offCanvas, backCanvas)
+// Off Canvas
+const offCanvas1 = document.createElement('canvas')
+const offCtx1 = offCanvas1.getContext('2d')
+const offCanvas2 = document.createElement('canvas')
+const offCtx2 = offCanvas2.getContext('2d')
 
 
 /****************/
@@ -16,14 +19,18 @@ const offCtx = setupCanvas(offCanvas, backCanvas)
 /****************/
 const DEBUG = true
 
-
 const SPRITE_SIZE = 16
 const MAP_WIDTH = 40
 const MAP_HEIGHT = 40
 const MAX_WEIGHT = 99999999
 const map = new Array(MAP_WIDTH).fill(null).map(() => new Array(MAP_HEIGHT).fill(null))
 
-let sprites, elapsed = elapsedBack = elapsedUI = 0, fps = 60
+let canvasWidth = 0
+let canvasHeight = 0
+const desiredAspectRatio = MAP_WIDTH / MAP_HEIGHT
+let dpr = globalThis.devicePixelRatio || 1
+
+let sprites, elapsed = elapsedBack = elapsedUI = 0, fps = 0
 let isDrawBackRequested = true
 
 let spriteCoords_Start = { x: 21, y: 5 }
@@ -86,7 +93,7 @@ class Unit {
     }
 
     this.lastMoveUpdate = time
-    this.move(delay)
+    this.move(Math.min(delay, 40))
   }
 
   pathToNearestEnemy() {
@@ -106,43 +113,12 @@ class Unit {
     this.x += (this.nextNode.x * SPRITE_SIZE - this.x) / 2 * this.speed * (delay/1000)
     this.y += (this.nextNode.y * SPRITE_SIZE - this.y) / 2 * this.speed * (delay/1000)
 
-    if(Math.hypot(this.nextNode.x*SPRITE_SIZE - this.x, this.nextNode.y*SPRITE_SIZE - this.y) < SPRITE_SIZE/4) {
+    if(Math.hypot(this.nextNode.x*SPRITE_SIZE - this.x, this.nextNode.y*SPRITE_SIZE - this.y) < SPRITE_SIZE/3) {
       this.currentNode.x = this.nextNode.x
       this.currentNode.y = this.nextNode.y
     }
 
   }
-}
-
-const loadAndSplitImage = (url) => {
-  return new Promise((resolve, reject) => {
-    const image = new Image()
-    image.crossOrigin = 'anonymous'
-
-    image.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = image.width
-      canvas.height = image.height
-
-      const ctx = canvas.getContext('2d')
-      ctx.drawImage(image, 0, 0)
-
-      const spriteSheet = ctx.getImageData(0, 0, image.width, image.height)
-      const sprites = Array.from({ length: Math.round(image.width/SPRITE_SIZE) }, (_, i) => Array.from({ length: Math.round(image.height/SPRITE_SIZE) }, (_, j) => 0))
-
-      // Split the image into smaller subimages of SPRITE_SIZExSPRITE_SIZE pixels
-      for (let x = 0; x < image.width / SPRITE_SIZE; x++) {
-        for (let y = 0; y < image.height / SPRITE_SIZE; y++) {
-          sprites[x][y] = ctx.getImageData(x * SPRITE_SIZE, y * SPRITE_SIZE, SPRITE_SIZE, SPRITE_SIZE)
-        }
-      }
-
-      resolve(sprites/*.filter(sprite => sprite.data.reduce((r, c) => r + c))*/)
-    }
-
-    image.onerror = reject
-    image.src = url
-  })
 }
 
 const generateMap = () => {
@@ -175,39 +151,44 @@ const generateMap = () => {
 }
 
 const drawMain = (delay) => {
-  mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-
   units.forEach((unit, i) => {
     // Display the unit
-    mainCtx.putImageData(unit.sprite, Math.round(unit.x), Math.round(unit.y))
+    offCtx1.putImageData(unit.sprite, Math.round(unit.x), Math.round(unit.y))
   })
+  mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
+  mainCtx.drawImage(offCanvas1, 0, 0, mainCanvas.width, mainCanvas.height)
 
+  // clear the offCanvas1 at the end
+  offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 }
 
 
 const drawBack = (delay) => {
-  backCtx.clearRect(0, 0, backCanvas.width, backCanvas.height)
-  offCtx.clearRect(0, 0, backCanvas.width, backCanvas.height)
+  backCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
   for (let x = 0; x < MAP_WIDTH; x++) {
     for (let y = 0; y < MAP_HEIGHT; y++) {
-      if(map[x][y].back) backCtx.putImageData(map[x][y].back, x * SPRITE_SIZE, y * SPRITE_SIZE)
-      offCtx.putImageData(map[x][y].sprite, x * SPRITE_SIZE, y * SPRITE_SIZE)
+      if(map[x][y].back) offCtx2.putImageData(map[x][y].back, x * SPRITE_SIZE, y * SPRITE_SIZE)
+      offCtx1.putImageData(map[x][y].sprite, x * SPRITE_SIZE, y * SPRITE_SIZE)
     }
   }
 
-  backCtx.drawImage(offCanvas, 0, 0, backCanvas.width, backCanvas.height)
+  backCtx.drawImage(offCanvas2, 0, 0, mainCanvas.width, mainCanvas.height)
+  backCtx.drawImage(offCanvas1, 0, 0, mainCanvas.width, mainCanvas.height)
 
   if(DEBUG) { // Display paths of the all units
-    offCtx.clearRect(0, 0, backCanvas.width, backCanvas.height)
+    offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
     units.forEach((unit, i) => {
       for (var i = 1; i < (unit.path || []).length; i++) {
-        offCtx.putImageData(sprites[spriteCoords_Path.x][spriteCoords_Path.y], unit.path[i].x * SPRITE_SIZE, unit.path[i].y * SPRITE_SIZE)
+        offCtx1.putImageData(sprites[spriteCoords_Path.x][spriteCoords_Path.y], unit.path[i].x * SPRITE_SIZE, unit.path[i].y * SPRITE_SIZE)
       }
     })
-    backCtx.drawImage(offCanvas, 0, 0, backCanvas.width, backCanvas.height)
+    backCtx.drawImage(offCanvas1, 0, 0, mainCanvas.width, mainCanvas.height)
   }
 
+  // clear the offCanvas1 at the end
+  offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
+  offCtx2.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 }
 
 const ui = (delay) => {
@@ -261,9 +242,9 @@ const gameLoop = () => {
 
 // the real "main" of the game
 onload = async (e) => {
-  onresize()
+  await onresize()
 
-  loadAndSplitImage('./assets/punyworld-overworld-tileset.png')
+  loadAndSplitImage('./assets/punyworld-overworld-tileset.png', SPRITE_SIZE)
     .then(spritesArray => {
       sprites = spritesArray
 
@@ -277,26 +258,40 @@ onload = async (e) => {
 
 };
 
-onresize = onrotate = () => {
-  // scale canvas to fit screen while maintaining aspect ratio
-  // scaleToFit = Math.min(innerWidth / mainCanvas.width, innerHeight / mainCanvas.height)
-  //
-  // mainCanvas.width = mainCanvas.width * scaleToFit
-  // mainCanvas.height = mainCanvas.height * scaleToFit
-  // backCanvas.width = mainCanvas.width
-  // backCanvas.height = mainCanvas.height
-  // uiCanvas.width = mainCanvas.width
-  // uiCanvas.height = mainCanvas.height
-  // offCanvas.width = mainCanvas.width
-  // offCanvas.height = mainCanvas.height
-  const pixels = Math.max(innerWidth, innerHeight)
-  mainCanvas.width = mainCanvas.height = pixels
-  backCanvas.width = backCanvas.height = pixels
-  uiCanvas.width = uiCanvas.height = pixels
-  offCanvas.width = offCanvas.height = pixels
+onresize = onrotate = async () => {
+  // Calculate new dimensions while maintaining aspect ratio
+  const screenWidth = globalThis.innerWidth || 800
+  const screenHeight = globalThis.innerHeight || 800
+  const screenAspectRatio = screenWidth / screenHeight
+
+  if (screenAspectRatio > desiredAspectRatio) {
+      // Screen is wider than our aspect ratio, set height to match screen and calculate width
+      canvasHeight = screenHeight
+      canvasWidth = canvasHeight * desiredAspectRatio
+  } else {
+      // Screen is taller than our aspect ratio, set width to match screen and calculate height
+      canvasWidth = screenWidth
+      canvasHeight = canvasWidth / desiredAspectRatio
+  }
+
+  // Account for Device Pixel Ratio (DPR)
+  dpr = globalThis.devicePixelRatio || 1; // Fallback for older browsers
+  mainCanvas.width = backCanvas.width = uiCanvas.width = offCanvas1.width = offCanvas2.width = MAP_WIDTH * SPRITE_SIZE * dpr
+  mainCanvas.height = backCanvas.height = uiCanvas.height = offCanvas1.height = offCanvas2.height = MAP_HEIGHT * SPRITE_SIZE * dpr
+
+  // To ensure proper scaling (no blurriness), scale the context
+  mainCtx.scale(dpr, dpr)
+  backCtx.scale(dpr, dpr)
+  uiCtx.scale(dpr, dpr)
+  offCtx1.scale(dpr, dpr)
+  offCtx2.scale(dpr, dpr)
+
+  // Now, update your canvas to fit the screen visually (CSS pixels)
+  mainCanvas.style.width = backCanvas.style.width = uiCanvas.style.width = `${canvasWidth}px`
+  mainCanvas.style.height = backCanvas.style.height = uiCanvas.style.height = `${canvasHeight}px`
 
   // disable smoothing on image scaling
-  mainCtx.imageSmoothingEnabled = backCtx.imageSmoothingEnabled = uiCtx.imageSmoothingEnabled = offCtx.imageSmoothingEnabled = false
+  mainCtx.imageSmoothingEnabled = backCtx.imageSmoothingEnabled = uiCtx.imageSmoothingEnabled = offCtx1.imageSmoothingEnabled = offCtx2.imageSmoothingEnabled = false
 
   isDrawBackRequested = true
 
