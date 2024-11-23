@@ -1,5 +1,18 @@
 'use strict'
 
+const throttle = (func, wait = 100) => {
+    let timeout
+    return (...args) => {
+        if (!timeout) {
+            timeout = setTimeout(() => {
+                timeout = null
+                func.apply(this, args)
+            }, wait)
+        }
+    }
+}
+
+
 const loadAndSplitImage = (url, spriteSize) => {
   return new Promise((resolve, reject) => {
     const image = new Image()

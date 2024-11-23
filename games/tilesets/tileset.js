@@ -6,8 +6,8 @@
 let DEBUG = false
 
 const SPRITE_SIZE = 16
-const MAP_WIDTH = 75
-const MAP_HEIGHT = 75
+const MAP_WIDTH = 40
+const MAP_HEIGHT = 40
 const MAX_WEIGHT = 99999999
 
 // Canvas
@@ -43,24 +43,24 @@ let isDrawBackRequested = true
 let spriteCoords_Start = { x: 21, y: 5 }
 let spriteCoords_End = { x: 22, y: 4 }
 let spriteCoords_Path = { x: 22, y: 5 }
+let spriteCoords_Mouse = { x: 21, y: 4 }
 
-const MAX_UNITS = 25
 let units = []
 let enemies = []
 
 class Unit {
   constructor(x, y, sprite) {
-    if(x) {
+    if(x >= 0) {
       this.x = x
     } else {
       this.x = Math.random()*MAP_WIDTH | 0
       while(map[this.x][MAP_HEIGHT-1].weight === MAX_WEIGHT) {
         this.x = Math.random()*MAP_WIDTH | 0
       }
-      this.x *= SPRITE_SIZE
     }
+    this.x *= SPRITE_SIZE
 
-    this.y = y ?? ((MAP_HEIGHT-1) * SPRITE_SIZE)
+    this.y = (y ?? MAP_HEIGHT-1) * SPRITE_SIZE
     this.currentNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
     this.nextNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
     this.sprite = offscreenSprite(sprite ?? sprites[spriteCoords_Start.x][spriteCoords_Start.y], SPRITE_SIZE)
@@ -69,11 +69,11 @@ class Unit {
     this.lastPathUpdate = 0
     this.goal = null
     this.life = 1
-    this.speed = 8 + (this.x + this.y)%20
+    this.speed = 8 + (this.x + this.y + elapsed)%20 | 0
   }
 
   update(delay) {
-    const time = performance.now()
+    const time = performance.now() | 0
 
     // Update Path
     if((this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y)) {
@@ -138,12 +138,17 @@ const generateMap = () => {
           back: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE)
         }
         enemies.push({x: x, y: y})
-      }
-      else if(random > 0.25) {
+      } else if(random > 0.25) {
         map[x][y] = { // Grass
           weight: 1,
           sprite: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE),
           back: null
+        }
+      } else if(random < 0.02) {
+        map[x][y] = { // Rock
+          weight: MAX_WEIGHT,
+          sprite: offscreenSprite(sprites[Math.random()*2 | 0][26], SPRITE_SIZE),
+          back: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE)
         }
       } else {
         map[x][y] = { // Tree + Grass
@@ -193,18 +198,34 @@ const drawBack = async () => {
   }
 }
 
-const ui = async (delay) => {
-  if(DEBUG) document.getElementById('stats').innerHTML = `FPS: ${(1000 * fps.length / fps.reduce((res, curr) => res + curr, 0)).toFixed(1)}`
+const ui = async () => {
+  offCtx1.clearRect(0, 0, uiCanvas.width, uiCanvas.height)
+  offCtx1.drawImage(mouse.sprite, mouse.x * SPRITE_SIZE, mouse.y * SPRITE_SIZE)
+  uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height)
+  uiCtx.drawImage(offCanvas1, 0, 0, uiCanvas.width, uiCanvas.height)
+
+  if(DEBUG) {
+    document.getElementById('stats').innerHTML = null
+    let div = document.createElement('div')
+    div.innerHTML = `FPS: ${(1000 * fps.length / fps.reduce((res, curr) => res + curr, 0)).toFixed(1)}`
+    document.getElementById('stats').appendChild(div)
+    div = document.createElement('div')
+    div.innerHTML = `Mouse: ${mouse.x}x${mouse.y}${mouse.isDragging ? ' | clic' : ''}`
+    document.getElementById('stats').appendChild(div)
+  }
+
+  mouse.needUpdate = false
 }
 
 const gameLoop = () => {
 
 
-  const now = performance.now()
+  const now = performance.now() | 0
   const delay = now - elapsed
   elapsed = now
 
 
+  // Back Map
   if(isDrawBackRequested && now - elapsedBack > 500) {
     isDrawBackRequested = false
     elapsedBack = now
@@ -213,31 +234,35 @@ const gameLoop = () => {
 
 
 
-  // Update units
-  for (var i = 0; i < units.length; i++) {
-    units[i].update(delay)
-    // if(units[i].life === 0) {
-    //   units.splice(i, 1)
-    //   i--
-    // }
-  }
-  units = units.filter(unit => unit.life)
-
-  // Create new units if needed
-  if((units.length < MAX_UNITS && Math.random() > 0.985) || units.length === 0) {
-    units.push(new Unit())
+ // UI
+  if(mouse.clicked) {
+    mouse.clicked = false
+    if(map[mouse.x][mouse.y].weight < 10) {
+      units.push(new Unit(mouse.x, mouse.y))
+    }
   }
 
-
-
-  if(now - elapsedUI > 200) {
-    ui(now - elapsedUI)
+  if(mouse.needUpdate || (DEBUG && now - elapsedUI > 500)) {
+    ui()
     elapsedUI = now
   }
 
   if(delay) {
     fps.push(delay)
     fps.shift()
+  }
+
+
+  // Game
+  // Update units
+  for (var i = 0; i < units.length; i++) {
+    units[i].update(delay)
+  }
+  units = units.filter(unit => unit.life)
+
+  // Create new units if needed
+  if(Math.random() > 0.985 || units.length === 0) {
+    units.push(new Unit())
   }
 
   drawMain()
@@ -258,6 +283,8 @@ onload = async (e) => {
   await onresize()
 
   sprites = await loadAndSplitImage('./assets/punyworld-overworld-tileset.png', SPRITE_SIZE)
+
+  initMouseEvents(uiCanvas, SPRITE_SIZE)
 
   generateMap()
   gameLoop()

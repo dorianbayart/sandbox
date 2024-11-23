@@ -2,67 +2,73 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <title>Tileset</title>
+  <title>Tileset</title>
 
-    <style>
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            height: 100dvh;
-        }
+  <style>
+    * {
+      user-select: none;
+    }
 
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: auto;
-            width: 100dvw;
-        }
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100dvh;
+    }
 
-        #backCanvas {
-          z-index: 5;
-        }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: auto;
+      width: 100dvw;
+    }
 
-        #mainCanvas {
-          z-index: 8;
-        }
+    #backCanvas {
+      z-index: 5;
+    }
 
-        #uiCanvas {
-          z-index: 10;
-        }
+    #mainCanvas {
+      z-index: 8;
+    }
 
-        #stats {
-            z-index: 100;
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            font-family: monospace;
-        }
+    #uiCanvas {
+      z-index: 10;
+      cursor: none;
+    }
 
-        button {
-          z-index: 105;
-          position: absolute;
-          bottom: 0;
-          right: 0;
-        }
-    </style>
+    #stats {
+      z-index: 100;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      font-family: monospace;
+    }
 
-    <script defer src="utils.js"></script>
-    <script defer src="pathfinding.js"></script>
-    <script defer src="tileset.js"></script>
+    button {
+      z-index: 105;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+  </style>
+
+  <script defer src="utils.js"></script>
+  <script defer src="pathfinding.js"></script>
+  <script defer src="mouse.js"></script>
+  <script defer src="tileset.js"></script>
 </head>
 
 <body>
-    <canvas id="backCanvas" width="100" height="100"></canvas>
-    <canvas id="mainCanvas" width="100" height="100"></canvas>
-    <canvas id="uiCanvas" width="100" height="100"></canvas>
-    <div id="stats"></div>
-    <button id="debugButton">DEBUG</button>
+  <canvas id="backCanvas" width="100" height="100"></canvas>
+  <canvas id="mainCanvas" width="100" height="100"></canvas>
+  <canvas id="uiCanvas" width="100" height="100"></canvas>
+  <div id="stats"></div>
+  <button id="debugButton">DEBUG</button>
 </body>
 
 </html>
