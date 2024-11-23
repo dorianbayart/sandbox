@@ -6,8 +6,8 @@
 let DEBUG = false
 
 const SPRITE_SIZE = 16
-const MAP_WIDTH = 40
-const MAP_HEIGHT = 40
+const MAP_WIDTH = (globalThis.innerWidth > globalThis.innerHeight ? globalThis.innerWidth / SPRITE_SIZE : globalThis.innerHeight / 16) | 0
+const MAP_HEIGHT = MAP_WIDTH * globalThis.innerHeight / globalThis.innerWidth | 0
 const MAX_WEIGHT = 99999999
 
 // Canvas
