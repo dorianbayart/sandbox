@@ -6,10 +6,7 @@ const loadAndSplitImage = (url, spriteSize) => {
     image.crossOrigin = 'anonymous'
 
     image.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = image.width
-      canvas.height = image.height
-
+      const canvas = new OffscreenCanvas(image.width, image.height)
       const ctx = canvas.getContext('2d')
       ctx.drawImage(image, 0, 0)
 
@@ -29,4 +26,31 @@ const loadAndSplitImage = (url, spriteSize) => {
     image.onerror = reject
     image.src = url
   })
+}
+
+const offscreenSprites = new Map()
+const offscreenSprite = (sprite, spriteSize) => {
+  const hash = arrayToHash(sprite.data)
+
+  if (!offscreenSprites.has(hash)) {
+    const canvas = new OffscreenCanvas(spriteSize, spriteSize)
+    const ctx = canvas.getContext('2d')
+    ctx.putImageData(sprite, 0, 0)
+    offscreenSprites.set(hash, canvas)
+  }
+
+  return offscreenSprites.get(hash)
+}
+
+// Calculate a very simplified hash from an array of string or integers
+const arrayToHash = (array) => {
+    return array.slice(0, array.length / 32 | 0).join('')
+
+    // Not used
+    let hash = 0;
+    if (array.length === 0) return hash
+
+    return array.join('').split('').reduce((hash, char) => {
+        return char.charCodeAt(0) + (hash << 6) + (hash << 16) - hash
+    }, 0)
 }

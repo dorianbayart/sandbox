@@ -1,5 +1,16 @@
 'use script'
 
+/****************/
+/*  DEBUG MODE  */
+/****************/
+let DEBUG = false
+
+const SPRITE_SIZE = 16
+const MAP_WIDTH = 75
+const MAP_HEIGHT = 75
+const MAX_WEIGHT = 99999999
+
+// Canvas
 const backCanvas = document.getElementById('backCanvas')
 const backCtx = backCanvas.getContext('2d')
 const mainCanvas = document.getElementById('mainCanvas')
@@ -13,16 +24,12 @@ const offCtx1 = offCanvas1.getContext('2d')
 const offCanvas2 = document.createElement('canvas')
 const offCtx2 = offCanvas2.getContext('2d')
 
+// Worker
+//const worker = new Worker("worker.js")
+//const canvasWorker = backCanvas.transferControlToOffscreen()
+//worker.postMessage({ canvas: canvasWorker }, [canvasWorker])
 
-/****************/
-/*  DEBUG MODE  */
-/****************/
-const DEBUG = true
 
-const SPRITE_SIZE = 16
-const MAP_WIDTH = 40
-const MAP_HEIGHT = 40
-const MAX_WEIGHT = 99999999
 const map = new Array(MAP_WIDTH).fill(null).map(() => new Array(MAP_HEIGHT).fill(null))
 
 let canvasWidth = 0
@@ -30,7 +37,7 @@ let canvasHeight = 0
 const desiredAspectRatio = MAP_WIDTH / MAP_HEIGHT
 let dpr = globalThis.devicePixelRatio || 1
 
-let sprites, elapsed = elapsedBack = elapsedUI = 0, fps = 0
+let sprites, elapsed = elapsedBack = elapsedUI = -5000, fps = 0
 let isDrawBackRequested = true
 
 let spriteCoords_Start = { x: 21, y: 5 }
@@ -38,7 +45,7 @@ let spriteCoords_End = { x: 22, y: 4 }
 let spriteCoords_Path = { x: 22, y: 5 }
 
 const units = []
-const MAX_UNITS = 10
+const MAX_UNITS = 25
 const enemies = []
 
 class Unit {
@@ -46,9 +53,9 @@ class Unit {
     if(x) {
       this.x = x
     } else {
-      this.x = Math.floor(Math.random()*MAP_WIDTH)
+      this.x = Math.random()*MAP_WIDTH | 0
       while(map[this.x][MAP_HEIGHT-1].weight === MAX_WEIGHT) {
-        this.x = Math.floor(Math.random()*MAP_WIDTH)
+        this.x = Math.random()*MAP_WIDTH | 0
       }
       this.x *= SPRITE_SIZE
     }
@@ -56,8 +63,8 @@ class Unit {
     this.y = y ?? ((MAP_HEIGHT-1) * SPRITE_SIZE)
     this.currentNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
     this.nextNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
-    this.sprite = sprite ?? sprites[spriteCoords_Start.x][spriteCoords_Start.y]
-    this.path = this.pathToNearestEnemy()
+    this.sprite = offscreenSprite(sprite ?? sprites[spriteCoords_Start.x][spriteCoords_Start.y], SPRITE_SIZE)
+    this.path = []
     this.lastMoveUpdate = 0
     this.lastPathUpdate = 0
     this.goal = null
@@ -70,26 +77,26 @@ class Unit {
 
     // Update Path
     if((this.currentNode.x === this.nextNode.x && this.currentNode.y === this.nextNode.y)) {
-      if(time - this.lastPathUpdate > 1000) {
+      if(time - this.lastPathUpdate > 4000) {
         this.lastPathUpdate = time
 
         this.path = this.pathToNearestEnemy()
-        if(!this.path || this.path.length === 1) {
-          this.life = 0
-          return
-        }
 
-        this.nextNode.x = this.path[1].x
-        this.nextNode.y = this.path[1].y
-      } else {
-        const i = this.path?.findIndex(node => node.x === this.currentNode.x && node.y === this.currentNode.y)
-        if(this.path[i+1]) {
-          this.nextNode.x = this.path[i + 1].x
-          this.nextNode.y = this.path[i + 1].y
-        }
+
+      } else if(this.path?.length > 1) {
+          this.path.splice(0, 1)
       }
 
-      isDrawBackRequested = true
+      if(!this.path || this.path.length === 1) {
+        this.life = 0
+        isDrawBackRequested = true
+        return
+      }
+
+      this.nextNode.x = this.path[1]?.x
+      this.nextNode.y = this.path[1]?.y
+
+      isDrawBackRequested = true && DEBUG
     }
 
     this.lastMoveUpdate = time
@@ -117,7 +124,6 @@ class Unit {
       this.currentNode.x = this.nextNode.x
       this.currentNode.y = this.nextNode.y
     }
-
   }
 }
 
@@ -126,24 +132,24 @@ const generateMap = () => {
     for (var y= 0; y < MAP_HEIGHT; y++) {
       const random = Math.random()
       if(y === 0 && random > 0.85) {
-        map[x][y] = {
+        map[x][y] = { // End
           weight: -2,
-          sprite: sprites[spriteCoords_End.x][spriteCoords_End.y],
-          back: sprites[Math.floor(Math.random()*3)][Math.floor(Math.random()*3)]
+          sprite: offscreenSprite(sprites[spriteCoords_End.x][spriteCoords_End.y], SPRITE_SIZE),
+          back: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE)
         }
         enemies.push({x: x, y: y})
       }
       else if(random > 0.25) {
-        map[x][y] = {
+        map[x][y] = { // Grass
           weight: 1,
-          sprite: sprites[Math.floor(Math.random()*3)][Math.floor(Math.random()*3)],
+          sprite: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE),
           back: null
         }
       } else {
-        map[x][y] = {
+        map[x][y] = { // Tree + Grass
           weight: MAX_WEIGHT,
-          sprite: sprites[Math.floor(Math.random()*2+2)][Math.floor(Math.random()*2)+26],
-          back: sprites[Math.floor(Math.random()*3)][Math.floor(Math.random()*3)]
+          sprite: offscreenSprite(sprites[Math.random()*2+2 | 0][Math.random()*2+26 | 0], SPRITE_SIZE),
+          back: offscreenSprite(sprites[Math.random()*3 | 0][Math.random()*3 | 0], SPRITE_SIZE)
         }
       }
     }
@@ -151,28 +157,28 @@ const generateMap = () => {
 }
 
 const drawMain = (delay) => {
+  offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
   units.forEach((unit, i) => {
     // Display the unit
-    offCtx1.putImageData(unit.sprite, Math.round(unit.x), Math.round(unit.y))
+    offCtx1.drawImage(unit.sprite, Math.round(unit.x), Math.round(unit.y))
   })
   mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
   mainCtx.drawImage(offCanvas1, 0, 0, mainCanvas.width, mainCanvas.height)
-
-  // clear the offCanvas1 at the end
-  offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 }
 
 
 const drawBack = (delay) => {
-  backCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
+  offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
+  offCtx2.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
   for (let x = 0; x < MAP_WIDTH; x++) {
     for (let y = 0; y < MAP_HEIGHT; y++) {
-      if(map[x][y].back) offCtx2.putImageData(map[x][y].back, x * SPRITE_SIZE, y * SPRITE_SIZE)
-      offCtx1.putImageData(map[x][y].sprite, x * SPRITE_SIZE, y * SPRITE_SIZE)
+      if(map[x][y].back) offCtx2.drawImage(map[x][y].back, x * SPRITE_SIZE, y * SPRITE_SIZE)
+      offCtx1.drawImage(map[x][y].sprite, x * SPRITE_SIZE, y * SPRITE_SIZE)
     }
   }
 
+  backCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
   backCtx.drawImage(offCanvas2, 0, 0, mainCanvas.width, mainCanvas.height)
   backCtx.drawImage(offCanvas1, 0, 0, mainCanvas.width, mainCanvas.height)
 
@@ -180,15 +186,11 @@ const drawBack = (delay) => {
     offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
     units.forEach((unit, i) => {
       for (var i = 1; i < (unit.path || []).length; i++) {
-        offCtx1.putImageData(sprites[spriteCoords_Path.x][spriteCoords_Path.y], unit.path[i].x * SPRITE_SIZE, unit.path[i].y * SPRITE_SIZE)
+        offCtx1.drawImage(offscreenSprite(sprites[spriteCoords_Path.x][spriteCoords_Path.y], SPRITE_SIZE), unit.path[i].x * SPRITE_SIZE, unit.path[i].y * SPRITE_SIZE)
       }
     })
     backCtx.drawImage(offCanvas1, 0, 0, mainCanvas.width, mainCanvas.height)
   }
-
-  // clear the offCanvas1 at the end
-  offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
-  offCtx2.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 }
 
 const ui = (delay) => {
@@ -203,13 +205,13 @@ const gameLoop = () => {
   elapsed = now
 
 
-  if(now - elapsedBack > 1000 || isDrawBackRequested) {
+  if(now - elapsedBack > 2500 || (isDrawBackRequested && now - elapsedBack > 500)) {
     isDrawBackRequested = false
     elapsedBack = now
     drawBack(now - elapsedBack)
   }
 
-  
+
 
   // Update units
   for (var i = 0; i < units.length; i++) {
@@ -221,20 +223,17 @@ const gameLoop = () => {
   }
 
   // Create new units if needed
-  if((units.length < MAX_UNITS && Math.random() > 0.99) || units.length === 0) {
+  if((units.length < MAX_UNITS && Math.random() > 0.985) || units.length === 0) {
     units.push(new Unit())
   }
 
 
 
-
-
-
-  //if(now - elapsedUI > 150) {
-    elapsedUI = now
-    fps = Math.round((fps*99 + 1000/delay)) / 100
+  if(now - elapsedUI > 200) {
     ui(now - elapsedUI)
-  //}
+    elapsedUI = now
+  }
+  fps = Math.round((fps*99 + 1000/(delay || 1))) / 100
 
   drawMain(delay)
 }
