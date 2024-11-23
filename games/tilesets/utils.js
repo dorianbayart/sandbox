@@ -7,7 +7,7 @@ const loadAndSplitImage = (url, spriteSize) => {
 
     image.onload = () => {
       const canvas = new OffscreenCanvas(image.width, image.height)
-      const ctx = canvas.getContext('2d')
+      const ctx = canvas.getContext('2d', { willReadFrequently: false })
       ctx.drawImage(image, 0, 0)
 
       const spriteSheet = ctx.getImageData(0, 0, image.width, image.height)

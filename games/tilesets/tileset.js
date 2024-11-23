@@ -198,7 +198,7 @@ const ui = (delay) => {
 }
 
 const gameLoop = () => {
-  requestAnimationFrame(gameLoop);
+
 
   const now = performance.now()
   const delay = now - elapsed
@@ -236,6 +236,8 @@ const gameLoop = () => {
   fps = Math.round((fps*99 + 1000/(delay || 1))) / 100
 
   drawMain(delay)
+
+  requestAnimationFrame(gameLoop)
 }
 
 
