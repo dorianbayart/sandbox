@@ -64,7 +64,7 @@ class Unit {
     this.currentNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
     this.nextNode = { x: this.x/SPRITE_SIZE, y: this.y/SPRITE_SIZE }
     this.sprite = offscreenSprite(sprite ?? sprites[spriteCoords_Start.x][spriteCoords_Start.y], SPRITE_SIZE)
-    this.path = []
+    this.path = this.pathToNearestEnemy()
     this.lastMoveUpdate = 0
     this.lastPathUpdate = 0
     this.goal = null
