@@ -20,11 +20,12 @@ const bestFirstSearch = (map, startX, startY, endX, endY) => {
 
   const neighbors = (x, y) => {
     let neighbors = [
-      { x: x+1, y: y, weight: map[x+1] ? map[x+1][y].weight : null },
-      { x: x-1, y: y, weight: map[x-1] ? map[x-1][y].weight : null },
-      { x: x, y: y-1, weight: map[x][y-1]?.weight },
-      { x: x, y: y+1, weight: map[x][y+1]?.weight }
+      { x: x+1, y: y },
+      { x: x-1, y: y },
+      { x: x, y: y-1 },
+      { x: x, y: y+1 }
     ] // E W N S
+
     if ((x + y) % 2 == 0) neighbors.reverse() // S N W E
 
     return neighbors.filter(neighbor =>
@@ -35,8 +36,8 @@ const bestFirstSearch = (map, startX, startY, endX, endY) => {
     )
   }
 
-  let startNode = { x: startX, y: startY, weight: map[startY][startX].weight }
-  let endNode = { x: endX, y: endY, weight: map[endY][endX].weight }
+  let startNode = { x: startX, y: startY }
+  let endNode = { x: endX, y: endY }
 
   openList.push(startNode)
 
@@ -54,7 +55,7 @@ const bestFirstSearch = (map, startX, startY, endX, endY) => {
 
       while (path[0].x !== startX || path[0].y !== startY) {
         const item = closedList.find(i => getHeuristic(i, path[0]) === 1)
-        path.unshift(item)
+        path.unshift({ x: item.x, y: item.y, weight: map[item.x][item.y].weight })
       }
 
       // console.log(path)
