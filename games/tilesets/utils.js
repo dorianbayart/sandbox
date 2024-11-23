@@ -44,7 +44,7 @@ const offscreenSprite = (sprite, spriteSize) => {
 
 // Calculate a very simplified hash from an array of string or integers
 const arrayToHash = (array) => {
-    return array.slice(0, array.length / 32 | 0).join('')
+    return array.slice(0, array.length / 2 | 0).join('')
 
     // Not used
     let hash = 0;

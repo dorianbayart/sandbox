@@ -37,16 +37,16 @@ let canvasHeight = 0
 const desiredAspectRatio = MAP_WIDTH / MAP_HEIGHT
 let dpr = globalThis.devicePixelRatio || 1
 
-let sprites, elapsed = elapsedBack = elapsedUI = -5000, fps = 0
+let sprites, elapsed = elapsedBack = elapsedUI = -5000, fps = new Array(50).fill(100)
 let isDrawBackRequested = true
 
 let spriteCoords_Start = { x: 21, y: 5 }
 let spriteCoords_End = { x: 22, y: 4 }
 let spriteCoords_Path = { x: 22, y: 5 }
 
-const units = []
 const MAX_UNITS = 25
-const enemies = []
+let units = []
+let enemies = []
 
 class Unit {
   constructor(x, y, sprite) {
@@ -69,7 +69,7 @@ class Unit {
     this.lastPathUpdate = 0
     this.goal = null
     this.life = 1
-    this.speed = 8 + (this.x + this.y)%10
+    this.speed = 8 + (this.x + this.y)%20
   }
 
   update(delay) {
@@ -96,7 +96,7 @@ class Unit {
       this.nextNode.x = this.path[1]?.x
       this.nextNode.y = this.path[1]?.y
 
-      isDrawBackRequested = true && DEBUG
+      isDrawBackRequested ||= DEBUG
     }
 
     this.lastMoveUpdate = time
@@ -156,7 +156,7 @@ const generateMap = () => {
   }
 }
 
-const drawMain = (delay) => {
+const drawMain = async () => {
   offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
   units.forEach((unit, i) => {
     // Display the unit
@@ -167,7 +167,7 @@ const drawMain = (delay) => {
 }
 
 
-const drawBack = (delay) => {
+const drawBack = async () => {
   offCtx1.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
   offCtx2.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
@@ -193,8 +193,8 @@ const drawBack = (delay) => {
   }
 }
 
-const ui = (delay) => {
-  document.getElementById('stats').innerHTML = `FPS: ${fps.toFixed(1)}`
+const ui = async (delay) => {
+  if(DEBUG) document.getElementById('stats').innerHTML = `FPS: ${(1000 * fps.length / fps.reduce((res, curr) => res + curr, 0)).toFixed(1)}`
 }
 
 const gameLoop = () => {
@@ -205,10 +205,10 @@ const gameLoop = () => {
   elapsed = now
 
 
-  if(now - elapsedBack > 2500 || (isDrawBackRequested && now - elapsedBack > 500)) {
+  if(isDrawBackRequested && now - elapsedBack > 500) {
     isDrawBackRequested = false
     elapsedBack = now
-    drawBack(now - elapsedBack)
+    drawBack()
   }
 
 
@@ -216,11 +216,12 @@ const gameLoop = () => {
   // Update units
   for (var i = 0; i < units.length; i++) {
     units[i].update(delay)
-    if(units[i].life === 0) {
-      units.splice(i, 1)
-      i--
-    }
+    // if(units[i].life === 0) {
+    //   units.splice(i, 1)
+    //   i--
+    // }
   }
+  units = units.filter(unit => unit.life)
 
   // Create new units if needed
   if((units.length < MAX_UNITS && Math.random() > 0.985) || units.length === 0) {
@@ -233,31 +234,36 @@ const gameLoop = () => {
     ui(now - elapsedUI)
     elapsedUI = now
   }
-  fps = Math.round((fps*99 + 1000/(delay || 1))) / 100
 
-  drawMain(delay)
+  if(delay) {
+    fps.push(delay)
+    fps.shift()
+  }
+
+  drawMain()
 
   requestAnimationFrame(gameLoop)
 }
 
 
+document.getElementById('debugButton').addEventListener('click', () => {
+  DEBUG = !DEBUG
+  isDrawBackRequested = true
+
+  if(!DEBUG) document.getElementById('stats').innerHTML = null
+})
+
 // the real "main" of the game
 onload = async (e) => {
   await onresize()
 
-  loadAndSplitImage('./assets/punyworld-overworld-tileset.png', SPRITE_SIZE)
-    .then(spritesArray => {
-      sprites = spritesArray
+  sprites = await loadAndSplitImage('./assets/punyworld-overworld-tileset.png', SPRITE_SIZE)
 
-      generateMap()
+  generateMap()
+  gameLoop()
+}
 
-      gameLoop()
-    })
-    .catch(error => {
-      console.error('Error loading and splitting image:', error)
-    })
 
-};
 
 onresize = onrotate = async () => {
   // Calculate new dimensions while maintaining aspect ratio
