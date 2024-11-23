@@ -52,7 +52,6 @@ const initMouseEvents = async (uiCanvas, spriteSize) => {
   canvas.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) { // Single finger touch
       mouse.isDragging = true
-      mouse.clicked = true
       storePosition(e.touches[0])
     } else if (e.touches.length === 2) { // Two fingers
       mouse.isPinching = true
