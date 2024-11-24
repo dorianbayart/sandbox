@@ -7,13 +7,28 @@
     <title>Dorian Bayart - Links</title>
     <meta name="description" content="My Link-in-Bio page, from scratch in pure HTML5/CSS3/JS, Dorian Bayart">
 
-    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" href="assets/26.png" type="image/png">
     <link rel="apple-touch-icon" href="assets/26.png" type="image/png">
+
+    <script>
+      if (location.protocol === "http:" && location.hostname !== "localhost") location.protocol = "https:"
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("./sw.js")
+          .then((reg) => console.log("Service Worker registered", reg))
+          .catch((err) => console.error("Service Worker **not** registered", err))
+      } else {
+        console.warn("Service Worker not supported in this browser")
+      }
+    </script>
+
+    <script src="js/script.js" defer></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com/css2" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
     <link rel="preconnect" href="https://ipfs.io/">
+
     <style>
       @media (prefers-color-scheme: light) {
         :root { /* Pale Red and Gold them */
@@ -114,7 +129,7 @@
       <section class="links">
         <ul>
           <li style="opacity: 0" >
-            <a href="https://github.com/dorianbayart" target="_blank" title="GitHub Profile">
+            <a href="https://github.com/dorianbayart" rel="me" target="_blank" title="GitHub Profile">
               <img loading="lazy" src="assets/github.svg" alt="GitHub icon" height="20" width="20">
               <span>My Profile on GitHub</span>
             </a>
@@ -137,22 +152,22 @@
       <section class="socials">
         <ul>
           <li style="opacity: 0" >
-            <a href="https://github.com/sponsors/dorianbayart" target="_blank" class="backlight" title="Sponsor on GitHub">
+            <a href="https://github.com/sponsors/dorianbayart" rel="me" target="_blank" class="backlight" title="Sponsor on GitHub">
               <img loading="lazy" src="assets/heart.svg" alt="Sponsor" height="20" width="20">
             </a>
           </li>
           <li style="opacity: 0" >
-            <a href="https://linkedin.com/in/dorianbayart" target="_blank" class="backlight" title="@dorianbayart on LinkedIn">
+            <a href="https://linkedin.com/in/dorianbayart" rel="me" target="_blank" class="backlight" title="@dorianbayart on LinkedIn">
               <img loading="lazy" src="assets/linkedin.svg" alt="LinkedIn" height="20" width="20">
             </a>
           </li>
           <li style="opacity: 0" >
-            <a href="https://x.com/@dorianbayart" target="_blank" class="backlight" title="@dorianbayart on X">
+            <a href="https://x.com/@dorianbayart" rel="me" target="_blank" class="backlight" title="@dorianbayart on X">
               <img loading="lazy" src="assets/x.svg" alt="X (Twitter)" height="20" width="20">
             </a>
           </li>
           <li style="opacity: 0" >
-            <a href="https://t.me/dorianbayart" target="_blank" class="backlight" title="@dorianbayart on Telegram">
+            <a href="https://t.me/dorianbayart" rel="me" target="_blank" class="backlight" title="@dorianbayart on Telegram">
               <img loading="lazy" src="assets/telegram.svg" alt="Telegram" height="20" width="20">
             </a>
           </li>
@@ -161,7 +176,7 @@
     </main>
 
     <footer style="opacity: 0">
-      <div id="footer" style="opacity: 0">&copy; 2024 <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a></div>
+      <div id="footer" style="opacity: 0">&copy; 2024 <a href="https://github.com/dorianbayart" rel="me" title="DorianBayart on GitHub" target="_blank">0xDBA</a></div>
     </footer>
 
     <svg width="0" height="0">
@@ -176,6 +191,5 @@
     </svg>
   </body>
 
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="css/style.css">
 </html>

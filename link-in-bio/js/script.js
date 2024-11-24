@@ -8,11 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('*[style="opacity: 0"]').forEach((item, i) => {
     setTimeout(() => revealObject(item), (i+1) * 75)
   })
-  
+
 
   // Update the footer with the current year date
   const currentYear = new Date().getFullYear()
-  document.getElementById('footer').innerHTML = `&copy; ${currentYear} - Made with &#9829; by <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a>`
+  document.getElementById('footer').innerHTML = `&copy; ${currentYear} - Made with &#9829; by <a href="https://github.com/dorianbayart" rel="me" title="DorianBayart on GitHub" target="_blank">0xDBA</a>`
 })
 
 // Reveal function

@@ -1,8 +1,14 @@
 {
-    "name": "Dorian Bayart",
+    "name": "Dorian Bayart - 0xDBA",
+    "short_name": "DBayart",
+    "description": "Coded from scratch my own link-in-bio page !",
     "icons": [
         { "src": "assets/26.png", "type": "image/png", "sizes": "192x192" },
         { "src": "assets/26.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" },
         { "src": "assets/26.png", "type": "image/png", "sizes": "512x512" }
-    ]
+    ],
+    "display": "standalone",
+    "background_color": "#D7F5EF",
+    "theme_color": "#9480FF",
+    "start_url": "/"
 }
