@@ -1,6 +1,6 @@
 {
-    "name": "Dorian Bayart - 0xDBA",
-    "short_name": "DBayart",
+    "name": "Dorian Bayart - 0xDBA - Links",
+    "short_name": "DorianBayart",
     "description": "Coded from scratch my own link-in-bio page !",
     "icons": [
         { "src": "assets/26.png", "type": "image/png", "sizes": "192x192" },
@@ -10,5 +10,5 @@
     "display": "standalone",
     "background_color": "#D7F5EF",
     "theme_color": "#9480FF",
-    "start_url": "/"
+    "start_url": "./"
 }

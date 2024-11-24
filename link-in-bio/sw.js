@@ -3,14 +3,14 @@
 const CACHE_NAME = '0xDBA_Cache_0.0.1'
 
 const urlsToCache = [
-  './',
-  './index.html',
-  './css/style.css',
-  './js/script.js',
+  '',
+  'index.html',
+  'css/style.css',
+  'js/script.js',
   'https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..900&display=swap',
   'https://ipfs.io/ipfs/QmYzbTvmPUgabLHukU7uDGnSvgTJt5gMkrNHctEbrLVM6h/26.webm',
-  './assets/26.png',
-  './assets/26.avif'
+  'assets/26.png',
+  'assets/26.avif'
 ]
 const self = this // For scope
 
