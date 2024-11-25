@@ -9,30 +9,30 @@ Source code is here: [https://github.com/dorianbayart/sandbox](https://github.co
 
 
 ## Alpine
-Boilerplate with AlpineJS and TailwindCss: [alpinejs](alpinejs)
+Boilerplate with AlpineJS and TailwindCss: [AlpineJS](alpinejs)
 
 
 ## Canvas
-Playing with canvas: mouse, responsive fullscreen, colors, simulated gravity: [canvas](canvas)
+Playing with canvas: mouse, responsive fullscreen, colors, simulated gravity: [Canvas](canvas)
 
 
 ## Games
 ### Boilerplate
-A boilerplate project to start coding on fullscreen canvas: [boilerplate](games/boilerplate)
+A boilerplate project to start coding on fullscreen canvas: [Boilerplate](games/boilerplate)
 
 ### Pathfinding
-Pathfinding algorithm: [pathfinding](games/pathfinding)
+Pathfinding algorithm: [Pathfinding](games/pathfinding)
 
-### Tilesets
-Split tileset into many sprites and build a map: [tilesets](games/tilesets)
+### Pixel Fortress
+A pixelated game in-between Tower Defense and Clicker styles: [Pixel Fortress](games/pixel-fortress)
 
 
 ## Glow/backlight effect
-Display a dynamic glow effect depending on the webcam content: [glow-effect](glow-effect)
+Display a dynamic glow effect depending on the webcam content: [Glow Effect](glow-effect)
 
 
 ## Link-in-Bio
-Link-in-Bio boilerplate: [link-in-bio](link-in-bio)
+Link-in-Bio boilerplate: [Link-in-Bio](link-in-bio)
 
 
 ## Mathematics - Algorithms
@@ -40,30 +40,29 @@ Fibonacci algorithms - Memoization, Map, BigInteger: [fibonacci.js](mathematics/
 
 
 ## Neural network
-A few cars with neural networks learn to drive: [neural-network](neural-network)
+A few cars with neural networks learn to drive: [Neural Network](neural-network)
 
 
 ## PeerToPeer
-Testing the PeerJS library (WebRTC): [peerjs](peerjs)
+Testing the PeerJS library (WebRTC): [PeerJS](peerjs)
 
 
 ## Utils
 ### Emoji flags
-A tools to convert country codes into their emoji flag: [emoji-flags](utils/emoji-flags)
+A tools to convert country codes into their emoji flag: [Emoji Flags](utils/emoji-flags)
 
 ### Loader
-Mini loader exemples: [loader](utils/loader)
+Mini loader exemples: [Loader](utils/loader)
 
 ### QR Code
-Generate a QR code: [qr](utils/qr)
+Generate a QR code: [Qr](utils/qr)
 
 ### SVG Repo
-Fetch a JSON file and display few SVG images: [svg-icons](utils/svg-icons)
+Fetch a JSON file and display few SVG images: [SVG Icons](utils/svg-icons)
 
 ### Webcam
-Display a canvas with the webcam stream: [webcam](utils/webcam)
+Display a canvas with the webcam stream: [Webcam](utils/webcam)
 
 
 ## Workers
-Use Web Workers to bubble sort a very big array: [workers](workers)
-
+Use Web Workers to bubble sort a very big array: [Workers](workers)

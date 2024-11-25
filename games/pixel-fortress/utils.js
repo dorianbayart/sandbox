@@ -12,7 +12,6 @@ const throttle = (func, wait = 100) => {
     }
 }
 
-
 const loadAndSplitImage = (url, spriteSize) => {
   return new Promise((resolve, reject) => {
     const image = new Image()
@@ -60,10 +59,10 @@ const arrayToHash = (array) => {
     return array.slice(0, array.length / 2 | 0).join('')
 
     // Not used
-    let hash = 0;
-    if (array.length === 0) return hash
-
-    return array.join('').split('').reduce((hash, char) => {
-        return char.charCodeAt(0) + (hash << 6) + (hash << 16) - hash
-    }, 0)
+    // let hash = 0;
+    // if (array.length === 0) return hash
+    //
+    // return array.join('').split('').reduce((hash, char) => {
+    //     return char.charCodeAt(0) + (hash << 6) + (hash << 16) - hash
+    // }, 0)
 }

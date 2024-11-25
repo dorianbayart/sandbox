@@ -6,9 +6,11 @@
 let DEBUG = false
 
 const SPRITE_SIZE = 16
-const MAP_WIDTH = (globalThis.innerWidth > globalThis.innerHeight ? globalThis.innerWidth / SPRITE_SIZE : globalThis.innerHeight / 16) | 0
+const MAP_WIDTH = (globalThis.innerWidth > globalThis.innerHeight ? globalThis.innerWidth / SPRITE_SIZE : globalThis.innerHeight / SPRITE_SIZE) / 2 | 0
 const MAP_HEIGHT = MAP_WIDTH * globalThis.innerHeight / globalThis.innerWidth | 0
 const MAX_WEIGHT = 99999999
+
+const MAX_SPEED = (globalThis.innerWidth > globalThis.innerHeight ? MAP_HEIGHT : MAP_WIDTH) / 3 | 0
 
 // Canvas
 const backCanvas = document.getElementById('backCanvas')
@@ -69,7 +71,7 @@ class Unit {
     this.lastPathUpdate = 0
     this.goal = null
     this.life = 1
-    this.speed = 8 + (this.x + this.y + elapsed)%20 | 0
+    this.speed = 4 + (this.x + this.y + elapsed) % MAX_SPEED | 0
   }
 
   update(delay) {
@@ -287,7 +289,17 @@ onload = async (e) => {
   initMouseEvents(uiCanvas, SPRITE_SIZE)
 
   generateMap()
-  gameLoop()
+
+  // Smoothly remove the splashscreen and launch the game
+  setTimeout(() => {
+    document.getElementById('gameName').style.opacity = 0
+    document.getElementById('progressBar').style.opacity = 0
+  }, 2500)
+  setTimeout(() => {
+    gameLoop()
+    document.getElementById('gameName').style.display = 'none'
+    document.getElementById('progressBar').style.display = 'none'
+  }, 2500 + 850)
 }
 
 
