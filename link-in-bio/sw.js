@@ -2,49 +2,42 @@
 
 const CACHE_NAME = '0xDBA_Cache_0.0.1'
 
-const urlsToCache = [
+const CACHED_URLS = [
   '',
   'index.html',
+  'manifest.json',
   'css/style.css',
   'js/script.js',
+  'assets/26.png',
+  'assets/26.avif',
   'https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..900&display=swap',
   'https://ipfs.io/ipfs/QmYzbTvmPUgabLHukU7uDGnSvgTJt5gMkrNHctEbrLVM6h/26.webm',
-  'assets/26.png',
-  'assets/26.avif'
 ]
 const self = this // For scope
 
 // Install Service Worker
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache')
-        return cache.addAll(urlsToCache)
-      })
-  )
+  event.waitUntil(async () => {
+    const cache = await caches.open(CACHE_NAME)
+    await cache.addAll(CACHED_URLS)
+  })
 })
 
-// Listen for requests
+// Listen for requests - Stale-while-revalidate
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - return response
-        if (response) {
-          return response
-        }
+  const { request } = event
+  event.respondWith(async () => {
+    const cache = await caches.open(CACHE_NAME)
+    const cachedResponsePromise = await cache.match(request)
+    const fetchedResponsePromise = fetch(request)
 
-        // Cache miss - fetch & cache new request
-        return fetch(event.request).then((response) => {
-          const responseToCache = response.clone()
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache)
-          })
-          return response
-        })
-      })
-  )
+    event.waitUntil(async () => {
+      const fetchedResponse = await fetchedResponsePromise
+      await cache.put(request, fetchedResponse.clone())
+    })
+
+    return cachedResponsePromise || fetchedResponsePromise
+  })
 })
 
 // Update cache periodically or on activate
@@ -52,17 +45,15 @@ self.addEventListener('activate', (event) => {
   const cacheWhitelist = []
   cacheWhitelist.push(CACHE_NAME)
 
-  event.waitUntil(
-    caches.keys().then((cacheNames) => Promise.all(
-      cacheNames.map((cacheName) => {
-        if(!cacheWhitelist.includes(cacheName)) {
-          return caches.delete(cacheName)
-        }
-      })
-    )).then(() => self.clients.claim())
-  )
+  event.waitUntil(async () => {
+    const cacheNames = await caches.keys()
+    await Promise.all(cacheNames
+      .filter((cacheName) => cacheName !== CACHE_NAME)
+      .map(cacheName => caches.delete(cacheName))
+    )
+  })
 
-  // Periodic cache update (e.g., weekly)
+  // Periodic cache update
   if ('periodicSync' in self.registration) {
     self.registration.periodicSync.register({
       tag: 'update-cache',
@@ -80,7 +71,7 @@ self.addEventListener('periodicsync', (event) => {
       self.registration.showNotification('Updating Cache...'),
       caches.open(CACHE_NAME).then((cache) => {
         // Simulate cache update by re-fetching core resources
-        const cacheUpdatePromises = urlsToCache.map((url) => {
+        const cacheUpdatePromises = CACHED_URLS.map(async (url) => {
           return fetch(url).then((response) => cache.put(url, response.clone()))
         })
         return Promise.all(cacheUpdatePromises)
