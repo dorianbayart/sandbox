@@ -6,6 +6,7 @@ const CACHED_URLS = [
   '',
   'index.html',
   'manifest.json',
+  'sw.js',
   'css/style.css',
   'js/script.js',
   'assets/26.png',
@@ -16,35 +17,38 @@ const CACHED_URLS = [
 const self = this // For scope
 
 // Install Service Worker
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   event.waitUntil(async () => {
     const cache = await caches.open(CACHE_NAME)
     await cache.addAll(CACHED_URLS)
+    console.log('Service Worker installed')
   })
 })
 
 // Listen for requests - Stale-while-revalidate
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', event => {
   const { request } = event
-  event.respondWith(async () => {
-    const cache = await caches.open(CACHE_NAME)
-    const cachedResponsePromise = await cache.match(request)
-    const fetchedResponsePromise = fetch(request)
+  console.log('Fetch event | stale-while-revalidate', request.url)
+  const cachedResponsePromise = caches.match(request)
+  const fetchedResponsePromise = fetch(request)
+  const fetchedClone = fetchedResponsePromise.then(resp => resp.clone())
 
-    event.waitUntil(async () => {
-      const fetchedResponse = await fetchedResponsePromise
-      await cache.put(request, fetchedResponse.clone())
-    })
+  event.respondWith(
+    Promise.race([fetchedResponsePromise.catch(() => cachedResponsePromise), cachedResponsePromise])
+      .then(resp => resp || fetchedResponsePromise)
+      .catch(() => new Response(null, {status: 404}))
+  )
 
-    return cachedResponsePromise || fetchedResponsePromise
-  })
+  if(request.method === "GET" && request.url.startsWith('http'))
+    event.waitUntil(
+      Promise.all([fetchedClone, caches.open(CACHE_NAME)])
+        .then(([response, cache]) => cache.put(request, response))
+        .catch(error => console.error('Caching error', event.request.url, error))
+    )
 })
 
-// Update cache periodically or on activate
-self.addEventListener('activate', (event) => {
-  const cacheWhitelist = []
-  cacheWhitelist.push(CACHE_NAME)
-
+// Clean up caches other than current
+self.addEventListener('activate', event => {
   event.waitUntil(async () => {
     const cacheNames = await caches.keys()
     await Promise.all(cacheNames
@@ -52,30 +56,4 @@ self.addEventListener('activate', (event) => {
       .map(cacheName => caches.delete(cacheName))
     )
   })
-
-  // Periodic cache update
-  if ('periodicSync' in self.registration) {
-    self.registration.periodicSync.register({
-      tag: 'update-cache',
-      minPeriod: 7 * 24 * 60 * 60 * 1000, // Weekly
-    }).then(registration => console.log('Periodic Sync registered', registration))
-  } else {
-    console.log('Periodic background sync not supported.')
-  }
-})
-
-// Handle periodic sync event to update cache
-self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'update-cache') {
-    event.waitUntil(
-      self.registration.showNotification('Updating Cache...'),
-      caches.open(CACHE_NAME).then((cache) => {
-        // Simulate cache update by re-fetching core resources
-        const cacheUpdatePromises = CACHED_URLS.map(async (url) => {
-          return fetch(url).then((response) => cache.put(url, response.clone()))
-        })
-        return Promise.all(cacheUpdatePromises)
-      }).then(() => self.registration.showNotification('Cache Updated!'))
-    )
-  }
 })
