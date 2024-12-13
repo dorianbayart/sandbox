@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..900&display=swap');
 
 * {
-  transition: all 400ms ease-in-out, transform 75ms ease-in-out, box-shadow 125ms ease-in-out;
+  transition: all 400ms ease-in-out, transform 75ms, box-shadow 125ms, margin 125ms, padding 125ms;
   box-sizing: border-box;
 }
 
@@ -118,13 +118,15 @@ section ul {
   justify-content: center;
 }
 
-section li a:hover img {
+section li a:hover img, section .sub-link a:hover img {
   transform: scale(2.5);
   filter: url(#blur-and-scale);
 }
+section .sub-link a:hover img {
+  transform: scale(1.5);
+}
 
-section li a:hover span {
-  transform: scale(1.4);
+section li a:hover span, section .sub-link a:hover span {
   filter: url(#blur-and-scale);
 }
 
@@ -132,7 +134,7 @@ section.links ul {
   flex-direction: column;
 }
 
-section.links li {
+section.links li, section.links .sub-link {
   font-weight: 320;
   background-color: var(--background-secondary);
   backdrop-filter: blur(10px) saturate(160%) contrast(180%);
@@ -141,13 +143,28 @@ section.links li {
   margin: 1.5dvh auto;
   border-radius: 2rem;
   outline: 1px solid var(--primary);
+  z-index: 10;
 }
 
-section.links li:hover {
+section.links .sub-link {
+  background-color: var(--background-secondary-lighter);
+  box-shadow: 0 0 max(1dvw, 1dvh) 0 var(--primary-lighter);
+  outline: 1px solid var(--primary-lighter);
+  margin: -4dvh auto 1.75dvh;
+  border-radius: 0 0 2rem 2rem;
+  padding-top: 2dvh;
+  z-index: 1;
+}
+
+section.links li:hover, section.links .sub-link:hover {
   box-shadow: 0 0 max(1.5dvw, 1.5dvh) 0 var(--shadow);
 }
+section.links .sub-link:hover {
+  margin: -5dvh auto 0.75dvh;
+  padding-top: 4dvh;
+}
 
-section.links li a {
+section.links li a, section.links .sub-link a {
   color: var(--primary);
   display: flex;
   align-items: center;
@@ -156,12 +173,12 @@ section.links li a {
   border-radius: 50px;
 }
 
-section.links li a img {
+section.links li a img, section.links .sub-link a img {
   height: 1.85rem;
   width: auto;
 }
 
-section.links li a span {
+section.links li a span, section.links .sub-link a span {
   flex-grow: 1;
   margin-left: -1.5rem;
 }
