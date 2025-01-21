@@ -1,0 +1,33 @@
+.loader-3 {
+  --loader-3-size: 48px;
+  --loader-3-thickness: calc(var(--loader-3-size) / 8);
+  --loader-3-color: #3498dbaa;
+
+  display: grid;
+  place-items: center;
+}
+
+.loader-3 .spinner {
+  width: var(--loader-3-size);
+  height: var(--loader-3-size);
+  border-radius: var(--loader-3-size);
+  border: var(--loader-3-thickness) solid transparent;
+  animation: loader-3 1.75s linear infinite;
+  mask: conic-gradient(#0000, #0000, #000, #000, #000, #000, #0000, #0000) subtract, linear-gradient(#000 0 0) content-box;
+}
+
+.loader-3 .spinner:after {
+  content: "";
+  position: absolute;
+  width: inherit;
+  height: inherit;
+  background-color: var(--loader-3-color);
+  top: calc(0px - var(--loader-3-thickness));
+  left: calc(0px - var(--loader-3-thickness));
+}
+
+@keyframes loader-3 {
+  to {
+    transform: rotate(1turn);
+  }
+}

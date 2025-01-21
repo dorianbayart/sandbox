@@ -1,0 +1,42 @@
+.loader-2 {
+  --loader-2-size: 48px;
+  --loader-2-thickness: calc(var(--loader-2-size) / 8);
+
+  display: grid;
+  place-items: center;
+}
+
+.loader-2 .spinner {
+  width: var(--loader-2-size);
+  height: var(--loader-2-size);
+  border-radius: var(--loader-2-size);
+  border: var(--loader-2-thickness) solid transparent;
+  animation: loader-2 5.75s linear infinite;
+  mask:
+      conic-gradient(#000f, #000) subtract,
+      linear-gradient(#000 0 0) content-box;
+}
+
+.loader-2 .spinner:after {
+  content: '';
+  position: absolute;
+  width: inherit;
+  height: inherit;
+  border-radius: inherit;
+  background-image: conic-gradient(from 90deg,
+          transparent,
+          #3498dbaa,
+          #e74c3caa,
+          #f1c40faa,
+          #2ecc71aa,
+          transparent);
+  animation: loader-2 1.85s linear infinite reverse;
+  top: calc(0px - var(--loader-2-thickness));
+  left: calc(0px - var(--loader-2-thickness));
+}
+
+@keyframes loader-2 {
+  to {
+      transform: rotate(1turn)
+  }
+}
