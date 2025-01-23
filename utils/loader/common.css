@@ -18,6 +18,15 @@ section {
   margin-bottom: 1rem;
   max-width: 640px;
   margin: 4dvh auto;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+section h2 {
+  align-self: flex-start;
 }
 
 section.loaders > div {

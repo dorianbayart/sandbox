@@ -1,0 +1,37 @@
+.loader-4 {
+  --loader-4-size: 48px;
+  --loader-4-thickness: calc(var(--loader-4-size) / 8);
+  --loader-4-color: #3498dbaa;
+
+  display: grid;
+  place-items: center;
+
+  background: white;
+  mix-blend-mode: multiply;
+  filter: blur(4px) contrast(10);
+  padding: 5px;
+}
+
+.loader-4 .blended-dots {
+  width: var(--loader-4-size);
+  aspect-ratio: 1.154;
+  --bg: no-repeat radial-gradient(farthest-side, #000 95%, #0000);
+  --bg1: no-repeat radial-gradient(farthest-side, #F00 100%, #0000);
+  --bg2: no-repeat radial-gradient(farthest-side, #08F 100%, #0000);
+  --bg3: no-repeat radial-gradient(farthest-side, #92F 100%, #0000);
+  background: var(--bg1), var(--bg2), var(--bg3);
+  background-size: 40% calc(40% * 1.154);
+  animation: loader-4 2s linear infinite;
+}
+
+@keyframes loader-4 {
+  0% {
+    background-position: 50% 0, 0 100%, 100% 100%;
+  }
+  50% {
+    background-position: 50% 30%, 30% 70%, 70% 70%;
+  }
+  100% {
+    background-position: 50% 0, 0 100%, 100% 100%;
+  }
+}
