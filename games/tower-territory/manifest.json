@@ -1,0 +1,20 @@
+{
+    "short_name": "Tower Territory",
+    "name": "Tower Territory",
+    "description": "Almost like a Tower Defense game, you must control all towers to win !",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "landscape",
+    "icons": [
+      {
+        "src": "icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }

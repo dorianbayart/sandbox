@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+<head>
+<title>Tower Territory</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="myCanvas"></canvas>
+<script>
+const canvas = document.getElementById('myCanvas');
+const ctx = canvas.getContext('2d');
+let drawRatio = 1
+
+let gamePaused = false;
+
+const players = [
+  { color: 'blue' },   // Player 0
+  { color: 'red' },    // Player 1
+  { color: 'green' },  // Player 2
+  { color: 'yellow' } // Player 3
+];
+
+const towers = [
+  { x: 10, y: 10, radius: 2.5, level: 5, player: 0 },
+  { x: 40, y: 25, radius: 2.5, level: 5, player: -1 },
+  { x: 70, y: 30, radius: 2.5, level: 5, player: -1 },
+  { x: 30, y: 60, radius: 2.5, level: 5, player: -1 },
+  { x: 80, y: 70, radius: 2.5, level: 5, player: -1 },
+  { x: 100, y: 55, radius: 2.5, level: 5, player: -1 },
+  { x: 135, y: 65, radius: 2.5, level: 5, player: 1 },
+  { x: 45, y: 95, radius: 2.5, level: 5, player: -1 },
+  { x: 95, y: 15, radius: 2.5, level: 5, player: -1 },
+  { x: 110, y: 80, radius: 2.5, level: 5, player: -1 },
+];
+
+let links = [];
+
+let units = [];
+
+let dragStartX, dragStartY;
+let isDragging = false;
+let startTower = null;
+
+let performancePrevious = performance.now()
+
+function resizeCanvas() {
+  const DPR = window.devicePixelRatio || 1;
+  canvas.width = window.innerWidth * DPR;
+  canvas.height = window.innerHeight * DPR;
+  canvas.style.width = `${window.innerWidth}px`;
+  canvas.style.height = `${window.innerHeight}px`;
+  ctx.scale(DPR, DPR);
+  drawMultiplierRatio = canvas.height / 100 / DPR
+}
+
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// Force landscape orientation
+screen.orientation.lock('landscape').catch(function() {
+  // If lock fails, use alternative method
+  const portrait = window.matchMedia("(orientation: portrait)");
+  if (portrait.matches) {
+    // Show a message or rotate the canvas
+    alert("Please rotate your device to landscape mode.");
+    // or: ctx.rotate(Math.PI / 2);
+  }
+});
+
+function drawTower(tower) {
+  ctx.beginPath();
+  ctx.arc(tower.x * drawMultiplierRatio, tower.y * drawMultiplierRatio, tower.radius * drawMultiplierRatio, 0, 2 * Math.PI);
+  ctx.fillStyle = tower.player >= 0 ? players[tower.player].color : 'gray';
+  ctx.fill();
+  // ctx.strokeStyle = 'blue';
+  // ctx.stroke();
+
+  // Display tower level
+  ctx.font = '16px Arial'; // Choose an appropriate font size
+  ctx.fillStyle = 'white';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(tower.level < 100 ? tower.level : 'Max', tower.x * drawMultiplierRatio, tower.y * drawMultiplierRatio);
+}
+
+function isPointInTower(x, y, tower) {
+  const dx = x - tower.x;
+  const dy = y - tower.y;
+  return Math.sqrt(dx * dx + dy * dy) <= tower.radius * 1.05;
+}
+
+function linkExists(from, to) {
+  return links.some(link =>
+    (link.from === from && link.to === to)
+  );
+}
+
+function removeLink(from, to) {
+  links = links.filter(link =>
+    !(
+      (link.from === from && link.to === to) ||
+      (link.from === to && link.to === from)
+    )
+  );
+
+  // Remove units associated with the removed link
+  units = units.filter(unit => 
+    !(unit.target === to && unit.from === from)
+  );
+}
+
+function drawLink(link) {
+  ctx.beginPath();
+  ctx.moveTo(link.from.x * drawMultiplierRatio, link.from.y * drawMultiplierRatio);
+  ctx.lineTo(link.to.x * drawMultiplierRatio, link.to.y * drawMultiplierRatio);
+  ctx.strokeStyle = players[link.from.player].color;
+  ctx.stroke();
+}
+
+function doIntersect(p1, q1, p2, q2) {
+  // Calculate the orientation of points using the following function
+  function orientation(p, q, r) {
+    const val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+    if (val === 0) return 0; // Collinear
+    return val > 0 ? 1 : 2; // Clockwise or counterclockwise
+  }
+
+  // Find the orientations of the four points formed by the line segments
+  const o1 = orientation(p1, q1, p2);
+  const o2 = orientation(p1, q1, q2);
+  const o3 = orientation(p2, q2, p1);
+  const o4 = orientation(p2, q2, q1);
+
+  // Check for general cases of intersection
+  if (o1 !== o2 && o3 !== o4) return true;
+
+  // Check for special cases where line segments overlap or share endpoints
+  if (o1 === 0 && onSegment(p1, p2, q1)) return true;
+  if (o2 === 0 && onSegment(p1, q2, q1)) return true;
+  if (o3 === 0 && onSegment(p2, p1, q2)) return true;
+  if (o4 === 0 && onSegment(p2, q1, q2)) return true;
+
+  return false; // No intersection
+}
+
+// Function to check if a point lies on a line segment
+function onSegment(p, q, r) {
+  return (
+    q.x <= Math.max(p.x, r.x) &&
+    q.x >= Math.min(p.x, r.x) &&
+    q.y <= Math.max(p.y, r.y) &&
+    q.y >= Math.min(p.y, r.y)
+  );
+}
+
+function createUnit(tower, link) {
+  if(!link) return;
+  
+  // Basic unit object with properties for position, movement, etc.
+  const unit = {
+    x: tower.x,
+    y: tower.y,
+    radius: 1,
+    speed: 15, // the map is 100 in height
+    from: tower,
+    target: link.to, // Target tower
+    player: tower.player // the owner
+  };
+  units.push(unit);
+}
+
+function updateUnit(unit, delay) {
+  // Calculate direction vector towards the target tower
+  const dx = unit.target.x - unit.x;
+  const dy = unit.target.y - unit.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  // Move the unit towards the target
+  unit.x += (dx / distance) * unit.speed * (delay / 1000);
+  unit.y += (dy / distance) * unit.speed * (delay / 1000);
+
+  // Check if the unit reached the target tower
+  if (distance < unit.radius) {
+    if (unit.target.player !== unit.player) { // Target tower not owned by player 0
+      if (unit.target.level === 0) {
+        unit.target.player = unit.player; // Convert ownership
+        links.filter(link => link.from === unit.target).forEach(link => removeLink(link.from, link.to));
+      } else {
+        unit.target.level--; // Decrease level
+      }
+    } else/* if(unit.target.player === unit.player)*/ { // Target tower ownership is correct
+        if(unit.target.level < 100) {
+            unit.target.level++; // Increase level
+        } else {
+            const outgoingLinks = links.filter(link => link.from === unit.target);
+            createUnit(unit.target, outgoingLinks[Math.random() * outgoingLinks.length | 0])
+        }
+    }
+    // Remove the unit or perform other actions upon reaching the target
+    units.splice(units.indexOf(unit), 1);
+  }
+}
+
+function drawUnit(unit) {
+  // Draw a simple representation of the unit (e.g., a circle)
+  ctx.beginPath();
+  ctx.arc(unit.x * drawMultiplierRatio, unit.y * drawMultiplierRatio, unit.radius * drawMultiplierRatio, 0, 2 * Math.PI); // Example radius
+  ctx.fillStyle = players[unit.player].color;
+  ctx.fill();
+}
+
+function getNearestTowerToConquest(playerTower) {
+  let nearestTower = null;
+  let nearestDistance = Infinity;
+
+  towers.forEach(tower => {
+    if (tower.player !== playerTower.player) {
+      const dx = tower.x - playerTower.x;
+      const dy = tower.y - playerTower.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < nearestDistance) {
+        nearestTower = tower;
+        nearestDistance = distance;
+      }
+    }
+  });
+
+  return nearestTower;
+}
+
+function performAIAction(playerIndex) {
+  let actionDone = false;
+
+  // Find all towers owned by the player, shuffled
+  const playerTowers = towers.filter(tower => tower.player === playerIndex).sort((a, b) => Math.random() - 0.5);
+
+  playerTowers.forEach(playerTower => {
+    if(actionDone) return;
+
+    // Find the nearest tower to conquest
+    const nearestTower = getNearestTowerToConquest(playerTower);
+
+    // If a tower is found, create a link to it
+    if (nearestTower && !linkExists(playerTower, nearestTower)) {
+        const outgoingLinks = links.filter(link => link.from === playerTower)
+        if(playerTower.level < 10 && outgoingLinks.length >= 1
+            || playerTower.level < 25 && outgoingLinks.length >= 2
+            && playerTower.level < 50 && outgoingLinks.length >= 3
+            && playerTower.level < 90 && outgoingLinks.length >= 4) {
+                return; // this tower is already full of outgoing links
+        } else {
+            links.push({ from: playerTower, to: nearestTower, lastUnitCreationTime: performance.now() });
+            actionDone = true;
+        }
+    }
+  });
+}
+
+// AI loop for players 1, 2, and 3
+let lastAITime = 0;
+function aiLoop(timestamp) {
+  if (timestamp - lastAITime >= 8000) { // Every 8 seconds
+    for (let i = 1; i <= 3; i++) { // For players 1, 2, and 3
+      performAIAction(i);
+    }
+    lastAITime = timestamp;
+  }
+  requestAnimationFrame(aiLoop);
+}
+
+canvas.addEventListener('mousedown', (e) => {
+  const x = e.clientX / drawMultiplierRatio;
+  const y = e.clientY / drawMultiplierRatio;
+  
+  isDragging = true;
+  startTower = null
+
+  dragStartX = x;
+  dragStartY = y;
+
+  towers.forEach(tower => {
+    if (isPointInTower(x, y, tower)) {
+      startTower = tower;
+
+      const outgoingLinks = links.filter(link => link.from === startTower)
+      if(startTower.level < 10 && outgoingLinks.length >= 1
+        || startTower.level < 25 && outgoingLinks.length >= 2
+        || startTower.level < 50 && outgoingLinks.length >= 3
+        || startTower.level < 90 && outgoingLinks.length >= 4
+        ) {
+            startTower = null;
+            isDragging = false;
+            return;
+      }
+    }
+  });
+});
+
+canvas.addEventListener('mouseup', (e) => {
+  if (!isDragging) return;
+  const x = e.clientX / drawMultiplierRatio;
+  const y = e.clientY / drawMultiplierRatio;
+  
+   // Check if the drag-end position intersects with any existing link
+   if(!startTower) {
+    links.filter(link => link.from.player === 0).forEach(link => {
+        const startPoint = { x: link.from.x, y: link.from.y };
+        const endPoint = { x: link.to.x, y: link.to.y };
+        const draggedLine = {
+          start: { x: dragStartX, y: dragStartY },
+          end: { x: x, y: y }
+        };
+        if (doIntersect(startPoint, endPoint, draggedLine.start, draggedLine.end)) {
+          removeLink(link.from, link.to);
+        }
+    });
+   }
+   
+  // Add a new link if the drag-end position is on a tower and there's no existing link
+  towers.forEach(tower => {
+    if (tower !== startTower && isPointInTower(x, y, tower) && startTower.player === 0) {
+      
+      if (!linkExists(startTower, tower)) {
+        if (linkExists(tower, startTower) && tower.player === 0) {
+          removeLink(tower, startTower);
+        }
+        links.push({ from: startTower, to: tower, lastUnitCreationTime: performance.now() });
+      }
+    }
+  });
+
+  isDragging = false;
+  startTower = null;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  e.preventDefault();
+});
+
+canvas.addEventListener('touchstart', (e) => {
+  // TODO
+});
+
+canvas.addEventListener('touchend', (e) => {
+  // TODO
+});
+
+canvas.addEventListener('touchmove', (e) => {
+  // TODO
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    gamePaused = false;
+    performancePrevious = performance.now(); // Reset lastUpdateTime to avoid a large "jump" when resuming
+    gameLoop(); // Restart the game loop
+  } else {
+    gamePaused = true;
+  }
+});
+
+function checkEndGame() {
+  for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
+    const allTowersOwned = towers.every(tower => tower.player === playerIndex);
+    if (allTowersOwned) {
+      console.log(`Player ${playerIndex} wins!`);
+      gamePaused = true
+
+      // Display the winning message
+      ctx.font = '48px Arial'; // Large font size for the message
+      ctx.fillStyle = 'black';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const DPR = window.devicePixelRatio || 1;
+      const text = playerIndex === 0 ? 'You win!' : `Player ${players[playerIndex].color} wins!`
+      ctx.fillText(text, canvas.width / 2 / DPR, canvas.height / 2 / DPR);
+      return true;
+    }
+  }
+  return false;
+}
+
+// Your game loop and rendering logic here
+function gameLoop() {
+  checkEndGame(); // Stop the game loop if the game has ended
+  if (gamePaused) return; // Don't update if the game is paused
+  
+  // Clear the canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const currentTime = performance.now()
+  const delay = currentTime - performancePrevious
+
+  // Draw links
+  links.forEach(drawLink);
+
+  // Towers are creating units
+  towers.forEach(tower => {
+    if(tower.level < 1) return; // Tower with level 0 cannot create unit
+    
+    // Find all links starting from this tower
+    const outgoingLinks = links.filter(link => link.from === tower);
+
+    outgoingLinks.forEach(link => {
+        if (currentTime - link.lastUnitCreationTime >= 1000) {
+            createUnit(tower, link);
+            link.lastUnitCreationTime = currentTime;
+        }
+    });
+  });
+
+  // Update and draw units
+  units.forEach(unit => updateUnit(unit, delay));
+  units.forEach(drawUnit);
+
+  // Draw towers
+  towers.forEach(drawTower);
+
+  requestAnimationFrame(gameLoop);
+  performancePrevious = currentTime
+}
+
+// Start the Game loop
+gameLoop();
+
+// Start the AI loop
+aiLoop();
+</script>
+</body>
+</html>
