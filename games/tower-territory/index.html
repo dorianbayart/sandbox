@@ -24,28 +24,66 @@ const players = [
   { color: 'yellow' } // Player 3
 ];
 
-const towers = [
-  { x: 10, y: 10, radius: 2.5, level: 5, player: 0 },
-  { x: 40, y: 25, radius: 2.5, level: 5, player: -1 },
-  { x: 70, y: 30, radius: 2.5, level: 5, player: -1 },
-  { x: 30, y: 60, radius: 2.5, level: 5, player: -1 },
-  { x: 80, y: 70, radius: 2.5, level: 5, player: -1 },
-  { x: 100, y: 55, radius: 2.5, level: 5, player: -1 },
-  { x: 135, y: 65, radius: 2.5, level: 5, player: 1 },
-  { x: 45, y: 95, radius: 2.5, level: 5, player: -1 },
-  { x: 95, y: 15, radius: 2.5, level: 5, player: -1 },
-  { x: 110, y: 80, radius: 2.5, level: 5, player: -1 },
+const levels = [
+  {
+    towers: [
+      { x: 10, y: 10, radius: 2.5, player: 0, level: 1 },
+      { x: 30, y: 15, radius: 2.5, level: 5 },
+      { x: 50, y: 30, radius: 2.5, level: 10 }
+    ],
+    links: []
+  },
+  {
+    towers: [
+      { x: 15, y: 15, radius: 2.5, player: 0, level: 10 },
+      { x: 35, y: 20, radius: 2.5, level: 5 },
+      { x: 25, y: 25, radius: 2.5, level: 5 },
+      { x: 55, y: 15, radius: 2.5, player: 1, level: 5 },
+      { x: 45, y: 30, radius: 2.5, level: 5 }
+    ],
+    links: []
+  },
+  {
+    towers: [
+      { x: 10, y: 10, radius: 2.5, level: 5, player: 0 },
+      { x: 40, y: 25, radius: 2.5, level: 5, player: -1 },
+      { x: 70, y: 30, radius: 2.5, level: 5, player: -1 },
+      { x: 30, y: 60, radius: 2.5, level: 5, player: -1 },
+      { x: 80, y: 70, radius: 2.5, level: 5, player: -1 },
+      { x: 100, y: 55, radius: 2.5, level: 5, player: -1 },
+      { x: 135, y: 65, radius: 2.5, level: 5, player: 1 },
+      { x: 45, y: 95, radius: 2.5, level: 5, player: -1 },
+      { x: 95, y: 15, radius: 2.5, level: 5, player: -1 },
+      { x: 110, y: 80, radius: 2.5, level: 5, player: -1 },
+    ],
+    links: []
+  }
 ];
 
+let towers = [];
 let links = [];
 
 let units = [];
+
+let currentLevelIndex = 0;
+let currentLevel = levels[currentLevelIndex];
 
 let dragStartX, dragStartY;
 let isDragging = false;
 let startTower = null;
 
 let performancePrevious = performance.now()
+
+function loadLevel(levelIndex) {
+  currentLevelIndex = levelIndex;
+  currentLevel = levels[currentLevelIndex];
+  towers = currentLevel.towers;
+  links = currentLevel.links;
+  units = []; // Reset units when loading a new level
+  gamePaused = false;
+  performancePrevious = performance.now();
+  gameLoop();
+}
 
 function resizeCanvas() {
   const DPR = window.devicePixelRatio || 1;
@@ -380,6 +418,9 @@ function checkEndGame() {
       const DPR = window.devicePixelRatio || 1;
       const text = playerIndex === 0 ? 'You win!' : `Player ${players[playerIndex].color} wins!`
       ctx.fillText(text, canvas.width / 2 / DPR, canvas.height / 2 / DPR);
+
+      if(playerIndex === 0) setTimeout(() => loadLevel(++currentLevelIndex), 5000);
+      else setTimeout(() => loadLevel(currentLevelIndex), 5000);
       return true;
     }
   }
@@ -426,8 +467,11 @@ function gameLoop() {
   performancePrevious = currentTime
 }
 
+// Load the first level
+loadLevel(0);
+
 // Start the Game loop
-gameLoop();
+// gameLoop(); // Useless, it is included in the loadLevel()
 
 // Start the AI loop
 aiLoop();
