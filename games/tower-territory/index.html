@@ -13,7 +13,7 @@
 <script>
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
-let drawRatio = 1
+let DPR = 1, drawMultiplierRatio = 1
 
 let gamePaused = false;
 
@@ -81,18 +81,19 @@ function loadLevel(levelIndex) {
   links = currentLevel.links;
   units = []; // Reset units when loading a new level
   gamePaused = false;
+  drawMultiplierRatio = calculateDisplayRatio();
   performancePrevious = performance.now();
   gameLoop();
 }
 
 function resizeCanvas() {
-  const DPR = window.devicePixelRatio || 1;
+  DPR = window.devicePixelRatio || 1;
   canvas.width = window.innerWidth * DPR;
   canvas.height = window.innerHeight * DPR;
   canvas.style.width = `${window.innerWidth}px`;
   canvas.style.height = `${window.innerHeight}px`;
   ctx.scale(DPR, DPR);
-  drawMultiplierRatio = canvas.height / 100 / DPR
+  drawMultiplierRatio = calculateDisplayRatio();
 }
 
 resizeCanvas();
@@ -108,6 +109,31 @@ screen.orientation.lock('landscape').catch(function() {
     // or: ctx.rotate(Math.PI / 2);
   }
 });
+
+function calculateDisplayRatio() {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  towers.forEach(tower => {
+    minX = Math.min(minX, tower.x - tower.radius);
+    minY = Math.min(minY, tower.y - tower.radius);
+    maxX = Math.max(maxX, tower.x + tower.radius);
+    maxY = Math.max(maxY, tower.y + tower.radius);
+  });
+
+  const levelWidth = maxX - minX + 4*towers[0]?.radius;
+  const levelHeight = maxY - minY + 4*towers[0]?.radius;
+  const canvasRatio = canvas.width / canvas.height;
+  const levelRatio = levelWidth / levelHeight;
+
+  if (canvasRatio > levelRatio) {
+    // Canvas is wider than level, fit by height
+    return canvas.height / levelHeight / DPR;
+  } else {
+    // Canvas is taller than level, fit by width
+    console.log(levelWidth, canvas.width / levelWidth / DPR, canvas.width / 100 / DPR)
+    return canvas.width / levelWidth / DPR;
+  }
+}
 
 function drawTower(tower) {
   ctx.beginPath();
@@ -415,7 +441,6 @@ function checkEndGame() {
       ctx.fillStyle = 'antiquewhite';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const DPR = window.devicePixelRatio || 1;
       const text = playerIndex === 0 ? 'You win!' : `Player ${players[playerIndex].color} wins!`
       ctx.fillText(text, canvas.width / 2 / DPR, canvas.height / 2 / DPR);
 
