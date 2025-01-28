@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html manifest="manifest.appcache">
 <head>
-<title>Tower Territory</title>
+<title>Minimalist Tower War</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -10,6 +10,17 @@
 </head>
 <body>
 <canvas id="myCanvas"></canvas>
+<div id="menu">
+  <h2>Minimalist Tower War</h2>
+  <div>
+    <label for="levelSelect">Select Level:</label>
+    <select id="levelSelect"></select>
+  </div>
+  <button onclick="startGame()">Start Game</button>
+  <button onclick="showAbout()">About</button>
+  <button onclick="showOptions()">Options</button>
+</div>
+
 <script>
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
@@ -62,11 +73,9 @@ const levels = [
 
 let towers = [];
 let links = [];
-
 let units = [];
 
 let currentLevelIndex = 0;
-let currentLevel = levels[currentLevelIndex];
 
 let dragStartX, dragStartY;
 let isDragging = false;
@@ -76,9 +85,8 @@ let performancePrevious = performance.now()
 
 function loadLevel(levelIndex) {
   currentLevelIndex = levelIndex;
-  currentLevel = levels[currentLevelIndex];
-  towers = currentLevel.towers;
-  links = currentLevel.links;
+  towers = JSON.parse(JSON.stringify(levels[currentLevelIndex].towers));
+  links = JSON.parse(JSON.stringify(levels[currentLevelIndex].links));
   units = []; // Reset units when loading a new level
   gamePaused = false;
   drawMultiplierRatio = calculateDisplayRatio();
@@ -328,7 +336,7 @@ function performAIAction(playerIndex) {
 // AI loop for players 1, 2, and 3
 let lastAITime = 0;
 function aiLoop(timestamp) {
-  if (timestamp - lastAITime >= 8000) { // Every 8 seconds
+  if (timestamp - lastAITime >= 12000) { // Every 12 seconds
     for (let i = 1; i <= 3; i++) { // For players 1, 2, and 3
       performAIAction(i);
     }
@@ -429,6 +437,42 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+function showMenu() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Populate level selector
+  const levelSelect = document.getElementById('levelSelect');
+  levelSelect.innerHTML = ''; // Clear previous options
+  for (let i = 0; i < levels.length; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.text = `Level ${i + 1}`;
+    levelSelect.add(option);
+  }
+
+  document.getElementById('menu').style.display = 'flex';
+}
+
+function hideMenu() {
+  document.getElementById('menu').style.display = 'none';
+}
+
+function startGame() {
+  const levelIndex = document.getElementById('levelSelect').value;
+  loadLevel(parseInt(levelIndex));
+  hideMenu();
+}
+
+function showAbout() {
+  // Add your about content here
+  alert("About this game...");
+}
+
+function showOptions() {
+  // Add your options content here
+  alert("Game options...");
+}
+
 function checkEndGame() {
   for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
     const allTowersOwned = towers.every(tower => tower.player === playerIndex);
@@ -444,8 +488,8 @@ function checkEndGame() {
       const text = playerIndex === 0 ? 'You win!' : `Player ${players[playerIndex].color} wins!`
       ctx.fillText(text, canvas.width / 2 / DPR, canvas.height / 2 / DPR);
 
-      if(playerIndex === 0) setTimeout(() => loadLevel(++currentLevelIndex), 5000);
-      else setTimeout(() => loadLevel(currentLevelIndex), 5000);
+      if(playerIndex === 0 && currentLevelIndex < levels.length - 1) setTimeout(() => showMenu(), 5000);
+      else setTimeout(() => showMenu(), 5000);
       return true;
     }
   }
@@ -454,7 +498,6 @@ function checkEndGame() {
 
 // Your game loop and rendering logic here
 function gameLoop() {
-  checkEndGame(); // Stop the game loop if the game has ended
   if (gamePaused) return; // Don't update if the game is paused
   
   // Clear the canvas
@@ -474,7 +517,7 @@ function gameLoop() {
     const outgoingLinks = links.filter(link => link.from === tower);
 
     outgoingLinks.forEach(link => {
-        if (currentTime - link.lastUnitCreationTime >= 1000) {
+        if (currentTime - link.lastUnitCreationTime >= 1250 - 2 * tower.level) {
             createUnit(tower, link);
             link.lastUnitCreationTime = currentTime;
         }
@@ -490,10 +533,15 @@ function gameLoop() {
 
   requestAnimationFrame(gameLoop);
   performancePrevious = currentTime
+
+  checkEndGame(); // Stop the game loop if the game has ended
 }
 
+// Show the menu initially
+showMenu();
+
 // Load the first level
-loadLevel(0);
+//loadLevel(0);
 
 // Start the Game loop
 // gameLoop(); // Useless, it is included in the loadLevel()

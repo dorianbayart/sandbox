@@ -1,6 +1,6 @@
 {
-    "short_name": "Tower Territory",
-    "name": "Tower Territory",
+    "short_name": "Minimalist Tower War",
+    "name": "Minimalist Tower War",
     "description": "Almost like a Tower Defense game, you must control all towers to win !",
     "start_url": "/",
     "display": "standalone",

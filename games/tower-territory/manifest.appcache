@@ -1,8 +1,8 @@
 CACHE MANIFEST
-# 2010-06-18:v3
+# 2025-01-28:v0
 
 # Explicitly cached entries
-index.html
+#index.html
 #css/style.css
 
 # offline.html will be displayed if the user is offline

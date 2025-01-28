@@ -7,8 +7,31 @@
 
 body {
   background-color: black;
+  font-family: system-ui, Verdana, Geneva, Tahoma, sans-serif;
+  font-weight: 250;
 }
 
 canvas {
   display: block;
+}
+
+h2 {
+  font-weight: bolder;
+}
+
+#menu {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 20px;
+  border-radius: 5px;
+  flex-flow: column;
+  display: none; /* Initially hidden */
+}
+
+#menu * {
+  margin: 0.75dvh 0;
+  padding: 0.5dvh 0.5dvw;
 }
