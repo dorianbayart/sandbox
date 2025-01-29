@@ -17,9 +17,11 @@ canvas {
 
 h2 {
   font-weight: bolder;
+  margin: 0.75dvh 0;
 }
 
 #menu {
+  width: min(350px, 75dvw);
   position: absolute;
   top: 50%;
   left: 50%;
@@ -31,7 +33,7 @@ h2 {
   display: none; /* Initially hidden */
 }
 
-#menu * {
+#menu button, #menu select, #menu label {
   margin: 0.75dvh 0;
   padding: 0.5dvh 0.5dvw;
 }

@@ -16,6 +16,10 @@
     <label for="levelSelect">Select Level:</label>
     <select id="levelSelect"></select>
   </div>
+  <div>
+    <label for="aiLevelSelect">AI Level:</label>
+    <select id="aiLevelSelect"></select>
+  </div>
   <button onclick="startGame()">Start Game</button>
   <button onclick="showAbout()">About</button>
   <button onclick="showOptions()">Options</button>
@@ -35,37 +39,144 @@ const players = [
   { color: 'yellow' } // Player 3
 ];
 
+const aiLevels = [
+  {
+    name: "Easy",
+    actionTime: 15000
+  },
+  {
+    name: "Normal",
+    actionTime: 10000
+  },
+  {
+    name: "Hard",
+    actionTime: 2500
+  },
+]
+
 const levels = [
+  // Level 1: Tutorial level (no AI)
   {
     towers: [
-      { x: 10, y: 10, radius: 2.5, player: 0, level: 1 },
+      { x: 10, y: 10, radius: 2.5, level: 1, player: 0 },
       { x: 30, y: 15, radius: 2.5, level: 5 },
       { x: 50, y: 30, radius: 2.5, level: 10 }
     ],
     links: []
   },
-  {
-    towers: [
-      { x: 15, y: 15, radius: 2.5, player: 0, level: 10 },
-      { x: 35, y: 20, radius: 2.5, level: 5 },
-      { x: 25, y: 25, radius: 2.5, level: 5 },
-      { x: 55, y: 15, radius: 2.5, player: 1, level: 5 },
-      { x: 45, y: 30, radius: 2.5, level: 5 }
-    ],
-    links: []
-  },
+
+  // Level 2: Easy level (1 AI player)
   {
     towers: [
       { x: 10, y: 10, radius: 2.5, level: 5, player: 0 },
-      { x: 40, y: 25, radius: 2.5, level: 5, player: -1 },
-      { x: 70, y: 30, radius: 2.5, level: 5, player: -1 },
-      { x: 30, y: 60, radius: 2.5, level: 5, player: -1 },
-      { x: 80, y: 70, radius: 2.5, level: 5, player: -1 },
-      { x: 100, y: 55, radius: 2.5, level: 5, player: -1 },
-      { x: 135, y: 65, radius: 2.5, level: 5, player: 1 },
-      { x: 45, y: 95, radius: 2.5, level: 5, player: -1 },
-      { x: 95, y: 15, radius: 2.5, level: 5, player: -1 },
-      { x: 110, y: 80, radius: 2.5, level: 5, player: -1 },
+      { x: 50, y: 10, radius: 2.5, level: 5, player: 1 },
+      { x: 25, y: 30, radius: 2.5, level: 1 },
+      { x: 35, y: 35, radius: 2.5, level: 1 }
+    ],
+    links: []
+  },
+
+  // Level 3: Easy level (1 AI player)
+  {
+    towers: [
+      { x: 5, y: 5, radius: 2.5, level: 10, player: 0 },
+      { x: 25, y: 10, radius: 2.5, level: 5 },
+      { x: 15, y: 15, radius: 2.5, level: 5 },
+      { x: 45, y: 5, radius: 2.5, level: 5, player: 1 },
+      { x: 35, y: 20, radius: 2.5, level: 5 }
+    ],
+    links: []
+  },
+
+  // Level 4: Easy level (1 AI player)
+  {
+    towers: [
+      { x: 10, y: 10, radius: 2.5, level: 5, player: 0 },
+      { x: 50, y: 10, radius: 2.5, level: 5 },
+      { x: 30, y: 20, radius: 2.5, level: 5 },
+      { x: 30, y: 40, radius: 2.5, level: 5, player: 1 }
+    ],
+    links: []
+  },
+
+  // Level 5: Easy level (1 AI player)
+  {
+    towers: [
+      { x: 10, y: 10, radius: 2.5, level: 5, player: 0 },
+      { x: 90, y: 10, radius: 2.5, level: 5, player: 1 },
+      { x: 50, y: 20, radius: 2.5, level: 5 },
+      { x: 10, y: 50, radius: 2.5, level: 5 },
+      { x: 90, y: 50, radius: 2.5, level: 5 },
+      { x: 50, y: 40, radius: 2.5, level: 5 }
+    ],
+    links: []
+  },
+
+  // Level 6: Medium level (1 AI player)
+  {
+    towers: [
+      { x: 10, y: 10, radius: 2.5, level: 5, player: 0 },
+      { x: 90, y: 10, radius: 2.5, level: 5, player: 1 },
+      { x: 50, y: 20, radius: 2.5, level: 5 },
+      { x: 10, y: 50, radius: 2.5, level: 5 },
+      { x: 90, y: 50, radius: 2.5, level: 5, player: 1 },
+      { x: 50, y: 40, radius: 2.5, level: 5 }
+    ],
+    links: []
+  },
+
+  // Level 7: Medium level (1 AI player)
+  {
+    towers: [
+      { x: 10, y: 10, radius: 2.5, level: 5, player: 0 },
+      { x: 90, y: 10, radius: 2.5, level: 5, player: 1 },
+      { x: 50, y: 20, radius: 2.5, level: 5 },
+      { x: 10, y: 50, radius: 2.5, level: 5 },
+      { x: 90, y: 50, radius: 2.5, level: 2 },
+      { x: 50, y: 40, radius: 2.5, level: 2 }
+    ],
+    links: []
+  },
+
+  // Level 8: Medium level (1 AI player)
+  {
+    towers: [
+      { x: 10, y: 10, radius: 2.5, level: 5, player: 0 },
+      { x: 90, y: 10, radius: 2.5, level: 10, player: 1 },
+      { x: 50, y: 20, radius: 2.5, level: 5 },
+      { x: 10, y: 50, radius: 2.5, level: 5 },
+      { x: 90, y: 50, radius: 2.5, level: 5 },
+      { x: 50, y: 40, radius: 2.5, level: 5 }
+    ],
+    links: []
+  },
+
+  // Level 9: Medium level (1 AI player)
+  {
+    towers: [
+      { x: 10, y: 10, radius: 2.5, level: 5, player: 0 },
+      { x: 90, y: 10, radius: 2.5, level: 25, player: 1 },
+      { x: 50, y: 20, radius: 2.5, level: 5 },
+      { x: 10, y: 50, radius: 2.5, level: 5 },
+      { x: 90, y: 50, radius: 2.5, level: 5 },
+      { x: 50, y: 40, radius: 2.5, level: 5 }
+    ],
+    links: []
+  },
+
+  // Level 7: Hard level (1 AI player)
+  {
+    towers: [
+      { x: 5, y: 10, radius: 2.5, level: 5, player: 0 },
+      { x: 25, y: 25, radius: 2.5, level: 5 },
+      { x: 70, y: 30, radius: 2.5, level: 5 },
+      { x: 30, y: 60, radius: 2.5, level: 5 },
+      { x: 80, y: 70, radius: 2.5, level: 5 },
+      { x: 100, y: 55, radius: 2.5, level: 5 },
+      { x: 135, y: 65, radius: 2.5, level: 10, player: 1 },
+      { x: 45, y: 95, radius: 2.5, level: 5 },
+      { x: 95, y: 15, radius: 2.5, level: 5 },
+      { x: 110, y: 80, radius: 2.5, level: 5 },
     ],
     links: []
   }
@@ -75,7 +186,7 @@ let towers = [];
 let links = [];
 let units = [];
 
-let currentLevelIndex = 0;
+let currentLevelIndex = 0, aiLevel = 1;
 
 let dragStartX, dragStartY;
 let isDragging = false;
@@ -113,7 +224,7 @@ screen.orientation.lock('landscape').catch(function() {
   const portrait = window.matchMedia("(orientation: portrait)");
   if (portrait.matches) {
     // Show a message or rotate the canvas
-    alert("Please rotate your device to landscape mode.");
+    // alert("Please rotate your device to landscape mode.");
     // or: ctx.rotate(Math.PI / 2);
   }
 });
@@ -128,19 +239,13 @@ function calculateDisplayRatio() {
     maxY = Math.max(maxY, tower.y + tower.radius);
   });
 
-  const levelWidth = maxX - minX + 4*towers[0]?.radius;
-  const levelHeight = maxY - minY + 4*towers[0]?.radius;
+  const levelWidth = maxX + minX //+ 4 * towers[0]?.radius;
+  const levelHeight = maxY + minY //+ 4 * towers[0]?.radius;
   const canvasRatio = canvas.width / canvas.height;
   const levelRatio = levelWidth / levelHeight;
 
-  if (canvasRatio > levelRatio) {
-    // Canvas is wider than level, fit by height
-    return canvas.height / levelHeight / DPR;
-  } else {
-    // Canvas is taller than level, fit by width
-    console.log(levelWidth, canvas.width / levelWidth / DPR, canvas.width / 100 / DPR)
-    return canvas.width / levelWidth / DPR;
-  }
+  if(canvasRatio > levelRatio) return canvas.height / levelHeight / DPR; // Canvas is wider than level, fit by height
+  return canvas.width / levelWidth / DPR; // Canvas is taller than level, fit by width
 }
 
 function drawTower(tower) {
@@ -152,7 +257,7 @@ function drawTower(tower) {
   // ctx.stroke();
 
   // Display tower level
-  ctx.font = '16px Arial'; // Choose an appropriate font size
+  ctx.font = `${2*drawMultiplierRatio}px Arial`;
   ctx.fillStyle = 'white';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -174,8 +279,7 @@ function linkExists(from, to) {
 function removeLink(from, to) {
   links = links.filter(link =>
     !(
-      (link.from === from && link.to === to) ||
-      (link.from === to && link.to === from)
+      (link.from === from && link.to === to) //|| (link.from === to && link.to === from)
     )
   );
 
@@ -186,9 +290,29 @@ function removeLink(from, to) {
 }
 
 function drawLink(link) {
+  const dx = link.to.x - link.from.x;
+  const dy = link.to.y - link.from.y;
+  const angle = Math.atan2(dy, dx);
+  const distance = Math.sqrt(dx * dx + dy * dy) * drawMultiplierRatio;
+
+  // Check if there is a reverse link
+  const reverseLink = links.find(l => l.from === link.to && l.to === link.from);
+
+  let endX, endY;
+  if (reverseLink) {
+    // If there is a reverse link, draw only half the distance
+    const halfDistance = distance / 2;
+    endX = link.from.x * drawMultiplierRatio + halfDistance * Math.cos(angle);
+    endY = link.from.y * drawMultiplierRatio + halfDistance * Math.sin(angle);
+  } else {
+    // Otherwise, draw the full line
+    endX = link.to.x * drawMultiplierRatio;
+    endY = link.to.y * drawMultiplierRatio;
+  }
+
   ctx.beginPath();
   ctx.moveTo(link.from.x * drawMultiplierRatio, link.from.y * drawMultiplierRatio);
-  ctx.lineTo(link.to.x * drawMultiplierRatio, link.to.y * drawMultiplierRatio);
+  ctx.lineTo(endX, endY);
   ctx.strokeStyle = players[link.from.player].color;
   ctx.stroke();
 }
@@ -334,15 +458,15 @@ function performAIAction(playerIndex) {
 }
 
 // AI loop for players 1, 2, and 3
-let lastAITime = 0;
+let lastAITime = -3000;
 function aiLoop(timestamp) {
-  if (timestamp - lastAITime >= 12000) { // Every 12 seconds
+  if (timestamp - lastAITime >= aiLevel.actionTime) {
     for (let i = 1; i <= 3; i++) { // For players 1, 2, and 3
       performAIAction(i);
     }
     lastAITime = timestamp;
   }
-  requestAnimationFrame(aiLoop);
+  setTimeout(() => requestAnimationFrame(aiLoop), 400);
 }
 
 canvas.addEventListener('mousedown', (e) => {
@@ -439,7 +563,7 @@ document.addEventListener('visibilitychange', () => {
 
 function showMenu() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
   // Populate level selector
   const levelSelect = document.getElementById('levelSelect');
   levelSelect.innerHTML = ''; // Clear previous options
@@ -448,6 +572,16 @@ function showMenu() {
     option.value = i;
     option.text = `Level ${i + 1}`;
     levelSelect.add(option);
+  }
+
+  // Populate AI level selector
+  const aiLevelSelect = document.getElementById('aiLevelSelect');
+  aiLevelSelect.innerHTML = ''; // Clear previous options
+  for (let i = 0; i < aiLevels.length; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.text = `${aiLevels[i].name}`;
+    aiLevelSelect.add(option);
   }
 
   document.getElementById('menu').style.display = 'flex';
@@ -459,6 +593,7 @@ function hideMenu() {
 
 function startGame() {
   const levelIndex = document.getElementById('levelSelect').value;
+  aiLevel = aiLevels[document.getElementById('aiLevelSelect').value];
   loadLevel(parseInt(levelIndex));
   hideMenu();
 }
@@ -481,7 +616,7 @@ function checkEndGame() {
       gamePaused = true
 
       // Display the winning message
-      ctx.font = '48px Arial'; // Large font size for the message
+      ctx.font = `${5*drawMultiplierRatio}px Arial`; // Large font size for the message
       ctx.fillStyle = 'antiquewhite';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
