@@ -469,12 +469,48 @@ function aiLoop(timestamp) {
   setTimeout(() => requestAnimationFrame(aiLoop), 400);
 }
 
-canvas.addEventListener('mousedown', (e) => {
+canvas.addEventListener('mousedown', downEvent);
+
+canvas.addEventListener('mouseup', upEvent);
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  e.preventDefault();
+});
+
+// canvas.addEventListener('touchstart', (e) => {});
+
+canvas.addEventListener('touchend', (e) => {
+  if(isDragging) {
+    console.log(e)
+    e = e.changedTouches[0]
+    upEvent(e)
+  }
+});
+
+canvas.addEventListener('touchmove', (e) => {
+  if(!isDragging) {
+    e = e.touches[0]
+    downEvent(e)
+  }
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    gamePaused = false;
+    performancePrevious = performance.now(); // Reset lastUpdateTime to avoid a large "jump" when resuming
+    gameLoop(); // Restart the game loop
+  } else {
+    gamePaused = true;
+  }
+});
+
+function downEvent(e) {
   const x = e.clientX / drawMultiplierRatio;
   const y = e.clientY / drawMultiplierRatio;
   
   isDragging = true;
-  startTower = null
+  startTower = null;
 
   dragStartX = x;
   dragStartY = y;
@@ -495,9 +531,9 @@ canvas.addEventListener('mousedown', (e) => {
       }
     }
   });
-});
+}
 
-canvas.addEventListener('mouseup', (e) => {
+function upEvent(e) {
   if (!isDragging) return;
   const x = e.clientX / drawMultiplierRatio;
   const y = e.clientY / drawMultiplierRatio;
@@ -519,7 +555,7 @@ canvas.addEventListener('mouseup', (e) => {
    
   // Add a new link if the drag-end position is on a tower and there's no existing link
   towers.forEach(tower => {
-    if (tower !== startTower && isPointInTower(x, y, tower) && startTower.player === 0) {
+    if (tower !== startTower && isPointInTower(x, y, tower) && startTower?.player === 0) {
       
       if (!linkExists(startTower, tower)) {
         if (linkExists(tower, startTower) && tower.player === 0) {
@@ -532,34 +568,7 @@ canvas.addEventListener('mouseup', (e) => {
 
   isDragging = false;
   startTower = null;
-});
-
-canvas.addEventListener('mousemove', (e) => {
-  if (!isDragging) return;
-  e.preventDefault();
-});
-
-canvas.addEventListener('touchstart', (e) => {
-  // TODO
-});
-
-canvas.addEventListener('touchend', (e) => {
-  // TODO
-});
-
-canvas.addEventListener('touchmove', (e) => {
-  // TODO
-});
-
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    gamePaused = false;
-    performancePrevious = performance.now(); // Reset lastUpdateTime to avoid a large "jump" when resuming
-    gameLoop(); // Restart the game loop
-  } else {
-    gamePaused = true;
-  }
-});
+}
 
 function showMenu() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
