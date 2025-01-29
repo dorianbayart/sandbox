@@ -267,7 +267,7 @@ function drawTower(tower) {
 function isPointInTower(x, y, tower) {
   const dx = x - tower.x;
   const dy = y - tower.y;
-  return Math.sqrt(dx * dx + dy * dy) <= tower.radius * 1.05;
+  return Math.sqrt(dx * dx + dy * dy) <= tower.radius * 1.15;
 }
 
 function linkExists(from, to) {
@@ -458,7 +458,7 @@ function performAIAction(playerIndex) {
 }
 
 // AI loop for players 1, 2, and 3
-let lastAITime = -3000;
+let lastAITime = -1000;
 function aiLoop(timestamp) {
   if (timestamp - lastAITime >= aiLevel.actionTime) {
     for (let i = 1; i <= 3; i++) { // For players 1, 2, and 3
