@@ -28,7 +28,8 @@
 <script>
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
-let DPR = 1, drawMultiplierRatio = 1
+let DPR = 1, drawMultiplierRatio = 1;
+const TOUCHEVENT_MARGIN = 1.2;
 
 let gamePaused = false;
 
@@ -164,6 +165,19 @@ const levels = [
     links: []
   },
 
+  // Level 10: Medium level (2 AI players)
+  {
+    towers: [
+      { x: 10, y: 10, radius: 2.5, level: 5, player: 0 },
+      { x: 90, y: 10, radius: 2.5, level: 5, player: 1 },
+      { x: 50, y: 20, radius: 2.5, level: 10, player: 2 },
+      { x: 10, y: 50, radius: 2.5, level: 5 },
+      { x: 90, y: 50, radius: 2.5, level: 5 },
+      { x: 50, y: 40, radius: 2.5, level: 5 }
+    ],
+    links: []
+  },
+
   // Level 7: Hard level (1 AI player)
   {
     towers: [
@@ -186,11 +200,11 @@ let towers = [];
 let links = [];
 let units = [];
 
-let currentLevelIndex = 0, aiLevel = 1;
+let currentLevelIndex = 0, aiLevel = aiLevels[0];
 
 let dragStartX, dragStartY;
 let isDragging = false;
-let startTower = null;
+let startTower = endTower = null;
 
 let performancePrevious = performance.now()
 
@@ -253,8 +267,13 @@ function drawTower(tower) {
   ctx.arc(tower.x * drawMultiplierRatio, tower.y * drawMultiplierRatio, tower.radius * drawMultiplierRatio, 0, 2 * Math.PI);
   ctx.fillStyle = tower.player >= 0 ? players[tower.player].color : 'gray';
   ctx.fill();
-  // ctx.strokeStyle = 'blue';
-  // ctx.stroke();
+
+  if(startTower === tower || endTower === tower) {
+    ctx.beginPath();
+    ctx.arc(tower.x * drawMultiplierRatio, tower.y * drawMultiplierRatio, tower.radius * drawMultiplierRatio * TOUCHEVENT_MARGIN, 0, 2 * Math.PI);
+    ctx.strokeStyle = players[startTower?.player].color;
+    ctx.stroke();
+  }
 
   // Display tower level
   ctx.font = `${2*drawMultiplierRatio}px Arial`;
@@ -267,7 +286,7 @@ function drawTower(tower) {
 function isPointInTower(x, y, tower) {
   const dx = x - tower.x;
   const dy = y - tower.y;
-  return Math.sqrt(dx * dx + dy * dy) <= tower.radius * 1.15;
+  return Math.sqrt(dx * dx + dy * dy) <= tower.radius * TOUCHEVENT_MARGIN;
 }
 
 function linkExists(from, to) {
@@ -475,6 +494,7 @@ canvas.addEventListener('mouseup', upEvent);
 
 canvas.addEventListener('mousemove', (e) => {
   if (!isDragging) return;
+  else moveEvent(e);
   e.preventDefault();
 });
 
@@ -482,7 +502,6 @@ canvas.addEventListener('mousemove', (e) => {
 
 canvas.addEventListener('touchend', (e) => {
   if(isDragging) {
-    console.log(e)
     e = e.changedTouches[0]
     upEvent(e)
   }
@@ -490,8 +509,9 @@ canvas.addEventListener('touchend', (e) => {
 
 canvas.addEventListener('touchmove', (e) => {
   if(!isDragging) {
-    e = e.touches[0]
-    downEvent(e)
+    downEvent(e.touches[0]);
+  } else {
+    moveEvent(e.touches[0]);
   }
 });
 
@@ -515,7 +535,7 @@ function downEvent(e) {
   dragStartX = x;
   dragStartY = y;
 
-  towers.forEach(tower => {
+  towers.filter(tower => tower.player === 0).forEach(tower => {
     if (isPointInTower(x, y, tower)) {
       startTower = tower;
 
@@ -531,6 +551,21 @@ function downEvent(e) {
       }
     }
   });
+}
+
+function moveEvent(e) {
+  const x = e.clientX / drawMultiplierRatio;
+  const y = e.clientY / drawMultiplierRatio;
+
+  if(!startTower) return;
+
+  endTower = null;
+
+  towers.forEach(tower => {
+    if (tower !== startTower && isPointInTower(x, y, tower)) {
+      endTower = tower;
+    }
+  })
 }
 
 function upEvent(e) {
@@ -554,20 +589,16 @@ function upEvent(e) {
    }
    
   // Add a new link if the drag-end position is on a tower and there's no existing link
-  towers.forEach(tower => {
-    if (tower !== startTower && isPointInTower(x, y, tower) && startTower?.player === 0) {
-      
-      if (!linkExists(startTower, tower)) {
-        if (linkExists(tower, startTower) && tower.player === 0) {
-          removeLink(tower, startTower);
-        }
-        links.push({ from: startTower, to: tower, lastUnitCreationTime: performance.now() });
-      }
+  if (endTower && !linkExists(startTower, endTower)) {
+    if (linkExists(endTower, startTower) && endTower.player === 0) {
+      removeLink(endTower, startTower);
     }
-  });
+    links.push({ from: startTower, to: endTower, lastUnitCreationTime: performance.now() });
+  }
 
   isDragging = false;
   startTower = null;
+  endTower = null;
 }
 
 function showMenu() {
@@ -582,6 +613,7 @@ function showMenu() {
     option.text = `Level ${i + 1}`;
     levelSelect.add(option);
   }
+  levelSelect.value = currentLevelIndex;
 
   // Populate AI level selector
   const aiLevelSelect = document.getElementById('aiLevelSelect');
@@ -592,6 +624,7 @@ function showMenu() {
     option.text = `${aiLevels[i].name}`;
     aiLevelSelect.add(option);
   }
+  aiLevelSelect.value = aiLevels.findIndex(ai => ai.name === aiLevel.name)
 
   document.getElementById('menu').style.display = 'flex';
 }
