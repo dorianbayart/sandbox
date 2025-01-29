@@ -26,6 +26,9 @@ Pathfinding algorithm: [Pathfinding](games/pathfinding)
 ### Pixel Fortress
 A pixelated game in-between Tower Defense and Clicker styles: [Pixel Fortress](games/pixel-fortress)
 
+### Minimalist Tower War
+A minimalist tower war style game: [Minimalist Tower War](games/tower-war)
+
 
 ## Glow/backlight effect
 Display a dynamic glow effect depending on the webcam content: [Glow Effect](glow-effect)
