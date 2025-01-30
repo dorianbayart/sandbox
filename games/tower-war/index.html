@@ -264,12 +264,14 @@ function calculateDisplayRatio() {
 
 function drawTower(tower) {
   ctx.beginPath();
+  ctx.lineWidth = 0.1 * drawMultiplierRatio;
   ctx.arc(tower.x * drawMultiplierRatio, tower.y * drawMultiplierRatio, tower.radius * drawMultiplierRatio, 0, 2 * Math.PI);
   ctx.fillStyle = tower.player >= 0 ? players[tower.player].color : 'gray';
   ctx.fill();
 
   if(startTower === tower || endTower === tower) {
     ctx.beginPath();
+    ctx.lineWidth = 0.2 * drawMultiplierRatio;
     ctx.arc(tower.x * drawMultiplierRatio, tower.y * drawMultiplierRatio, tower.radius * drawMultiplierRatio * TOUCHEVENT_MARGIN, 0, 2 * Math.PI);
     ctx.strokeStyle = players[startTower?.player].color;
     ctx.stroke();
@@ -330,6 +332,7 @@ function drawLink(link) {
   }
 
   ctx.beginPath();
+  ctx.lineWidth = 0.25 * drawMultiplierRatio;
   ctx.moveTo(link.from.x * drawMultiplierRatio, link.from.y * drawMultiplierRatio);
   ctx.lineTo(endX, endY);
   ctx.strokeStyle = players[link.from.player].color;
@@ -423,6 +426,7 @@ function updateUnit(unit, delay) {
 function drawUnit(unit) {
   // Draw a simple representation of the unit (e.g., a circle)
   ctx.beginPath();
+  ctx.lineWidth = 0.1 * drawMultiplierRatio;
   ctx.arc(unit.x * drawMultiplierRatio, unit.y * drawMultiplierRatio, unit.radius * drawMultiplierRatio, 0, 2 * Math.PI); // Example radius
   ctx.fillStyle = players[unit.player].color;
   ctx.fill();
