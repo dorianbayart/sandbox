@@ -43,11 +43,11 @@ const players = [
 const aiLevels = [
   {
     name: "Easy",
-    actionTime: 15000
+    actionTime: 12500
   },
   {
     name: "Normal",
-    actionTime: 10000
+    actionTime: 8500
   },
   {
     name: "Hard",
@@ -71,8 +71,8 @@ const levels = [
     towers: [
       { x: 10, y: 10, radius: 2.5, level: 5, player: 0 },
       { x: 50, y: 10, radius: 2.5, level: 5, player: 1 },
-      { x: 25, y: 30, radius: 2.5, level: 1 },
-      { x: 35, y: 35, radius: 2.5, level: 1 }
+      { x: 25, y: 30, radius: 2.5, level: 2 },
+      { x: 35, y: 35, radius: 2.5, level: 2 }
     ],
     links: []
   },
@@ -199,6 +199,7 @@ const levels = [
 let towers = [];
 let links = [];
 let units = [];
+let explosions = [];
 
 let currentLevelIndex = 0, aiLevel = aiLevels[0];
 
@@ -213,10 +214,17 @@ function loadLevel(levelIndex) {
   towers = JSON.parse(JSON.stringify(levels[currentLevelIndex].towers));
   links = JSON.parse(JSON.stringify(levels[currentLevelIndex].links));
   units = []; // Reset units when loading a new level
+  explosions = []; // Reset explosions
   gamePaused = false;
   drawMultiplierRatio = calculateDisplayRatio();
   performancePrevious = performance.now();
+  lastAITime = performancePrevious - 1000;
+
+  // Start the Game loop
   gameLoop();
+
+  // Start the AI loop
+  aiLoop();
 }
 
 function resizeCanvas() {
@@ -263,6 +271,12 @@ function calculateDisplayRatio() {
 }
 
 function drawTower(tower) {
+  // Add shadow effect
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.shadowBlur = 3 * drawMultiplierRatio;
+  ctx.shadowColor = tower.player >= 0 ? players[tower.player].color : 'gray';
+
   ctx.beginPath();
   ctx.lineWidth = 0.1 * drawMultiplierRatio;
   ctx.arc(tower.x * drawMultiplierRatio, tower.y * drawMultiplierRatio, tower.radius * drawMultiplierRatio, 0, 2 * Math.PI);
@@ -276,6 +290,11 @@ function drawTower(tower) {
     ctx.strokeStyle = players[startTower?.player].color;
     ctx.stroke();
   }
+
+  // Reset shadow properties
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.shadowBlur = 0;
 
   // Display tower level
   ctx.font = `${2*drawMultiplierRatio}px Arial`;
@@ -331,12 +350,47 @@ function drawLink(link) {
     endY = link.to.y * drawMultiplierRatio;
   }
 
+  // Add shadow effect
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.shadowBlur = 1 * drawMultiplierRatio;
+  ctx.shadowColor = players[link.from.player].color;
+
   ctx.beginPath();
   ctx.lineWidth = 0.25 * drawMultiplierRatio;
   ctx.moveTo(link.from.x * drawMultiplierRatio, link.from.y * drawMultiplierRatio);
   ctx.lineTo(endX, endY);
   ctx.strokeStyle = players[link.from.player].color;
   ctx.stroke();
+
+  // Draw moving arrowhead
+  const arrowheadSize = 0.75 * drawMultiplierRatio; // Adjust size as needed
+  const arrowheadPosition = (performance.now() / 5000 % 1) * distance; // Calculate position based on time
+
+  // Calculate arrowhead coordinates
+  const arrowX = link.from.x * drawMultiplierRatio + arrowheadPosition * Math.cos(angle);
+  const arrowY = link.from.y * drawMultiplierRatio + arrowheadPosition * Math.sin(angle);
+
+  // Rotate the canvas to draw the arrowhead
+  ctx.save();
+  ctx.translate(arrowX, arrowY);
+  ctx.rotate(angle);
+
+  // Draw the arrowhead (triangle)
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-arrowheadSize, -arrowheadSize / 2);
+  ctx.lineTo(-arrowheadSize, arrowheadSize / 2);
+  ctx.closePath();
+  ctx.fillStyle = players[link.from.player].color;
+  ctx.fill();
+
+  ctx.restore();
+
+  // Reset shadow properties
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.shadowBlur = 0;
 }
 
 function doIntersect(p1, q1, p2, q2) {
@@ -375,6 +429,13 @@ function onSegment(p, q, r) {
   );
 }
 
+function checkCollision(unit1, unit2) {
+  const dx = unit1.x - unit2.x;
+  const dy = unit1.y - unit2.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  return distance < (unit1.radius + unit2.radius) / 2;
+}
+
 function createUnit(tower, link) {
   if(!link) return;
   
@@ -383,7 +444,7 @@ function createUnit(tower, link) {
     x: tower.x,
     y: tower.y,
     radius: 1,
-    speed: 15, // the map is 100 in height
+    speed: 17.5, // the map is 100 in height
     from: tower,
     target: link.to, // Target tower
     player: tower.player // the owner
@@ -410,7 +471,8 @@ function updateUnit(unit, delay) {
       } else {
         unit.target.level--; // Decrease level
       }
-    } else/* if(unit.target.player === unit.player)*/ { // Target tower ownership is correct
+      explosions.push(createExplosion(unit.x, unit.y)); // Add explosion
+    } else { // Target tower and unit have same ownership
         if(unit.target.level < 100) {
             unit.target.level++; // Increase level
         } else {
@@ -424,12 +486,63 @@ function updateUnit(unit, delay) {
 }
 
 function drawUnit(unit) {
-  // Draw a simple representation of the unit (e.g., a circle)
+  // Add shadow effect
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.shadowBlur = 2 * drawMultiplierRatio;
+  ctx.shadowColor = players[unit.player].color;
+
+  // Draw a simple representation of the unit
   ctx.beginPath();
   ctx.lineWidth = 0.1 * drawMultiplierRatio;
   ctx.arc(unit.x * drawMultiplierRatio, unit.y * drawMultiplierRatio, unit.radius * drawMultiplierRatio, 0, 2 * Math.PI); // Example radius
   ctx.fillStyle = players[unit.player].color;
   ctx.fill();
+
+  // Reset shadow properties
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.shadowBlur = 0;
+}
+
+function createExplosion(x, y) {
+  const particles = [];
+  for (let i = 0; i < 25; i++) {
+    particles.push({
+      x: x,
+      y: y,
+      angle: Math.random() * Math.PI * 2,
+      speed: Math.random() * 6,
+      size: Math.random() * 0.075 + 0.025,
+      life: Math.random() * 800 + 600, // Lifetime in milliseconds
+    });
+  }
+
+  return {
+    size() {
+      return particles.length;
+    },
+
+    update(delay) {
+      particles.forEach(particle => {
+        particle.x += Math.cos(particle.angle) * particle.speed * (delay / 1000);
+        particle.y += Math.sin(particle.angle) * particle.speed * (delay / 1000);
+        particle.life -= delay;
+      });
+
+      // Remove dead particles
+      particles.splice(0, particles.length,...particles.filter(particle => particle.life > 0));
+    },
+
+    draw() {
+      particles.forEach(particle => {
+        ctx.beginPath();
+        ctx.arc(particle.x * drawMultiplierRatio, particle.y * drawMultiplierRatio, particle.size * drawMultiplierRatio, 0, 2 * Math.PI);
+        ctx.fillStyle = 'orange';
+        ctx.fill();
+      });
+    }
+  };
 }
 
 function getNearestTowerToConquest(playerTower) {
@@ -437,7 +550,7 @@ function getNearestTowerToConquest(playerTower) {
   let nearestDistance = Infinity;
 
   towers.forEach(tower => {
-    if (tower.player !== playerTower.player) {
+    if (tower.player !== playerTower.player && !linkExists(playerTower, tower)) {
       const dx = tower.x - playerTower.x;
       const dy = tower.y - playerTower.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
@@ -448,6 +561,21 @@ function getNearestTowerToConquest(playerTower) {
       }
     }
   });
+
+  if(!nearestTower && aiLevel !== aiLevels[0]) {
+    towers.forEach(tower => {
+      if (tower.player === playerTower.player && !linkExists(playerTower, tower) && !linkExists(tower, playerTower)) {
+        const dx = tower.x - playerTower.x;
+        const dy = tower.y - playerTower.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < nearestDistance) {
+          nearestTower = tower;
+          nearestDistance = distance;
+        }
+      }
+    })
+  }
 
   return nearestTower;
 }
@@ -467,10 +595,10 @@ function performAIAction(playerIndex) {
     // If a tower is found, create a link to it
     if (nearestTower && !linkExists(playerTower, nearestTower)) {
         const outgoingLinks = links.filter(link => link.from === playerTower)
-        if(playerTower.level < 10 && outgoingLinks.length >= 1
-            || playerTower.level < 25 && outgoingLinks.length >= 2
-            && playerTower.level < 50 && outgoingLinks.length >= 3
-            && playerTower.level < 90 && outgoingLinks.length >= 4) {
+        if(playerTower.level < 15 && outgoingLinks.length >= 1
+            || playerTower.level < 40 && outgoingLinks.length >= 2
+            || playerTower.level < 75 && outgoingLinks.length >= 3
+            /*|| playerTower.level < 90 && outgoingLinks.length >= 4*/) {
                 return; // this tower is already full of outgoing links
         } else {
             links.push({ from: playerTower, to: nearestTower, lastUnitCreationTime: performance.now() });
@@ -483,6 +611,8 @@ function performAIAction(playerIndex) {
 // AI loop for players 1, 2, and 3
 let lastAITime = -1000;
 function aiLoop(timestamp) {
+  if(gamePaused) return;
+
   if (timestamp - lastAITime >= aiLevel.actionTime) {
     for (let i = 1; i <= 3; i++) { // For players 1, 2, and 3
       performAIAction(i);
@@ -544,10 +674,10 @@ function downEvent(e) {
       startTower = tower;
 
       const outgoingLinks = links.filter(link => link.from === startTower)
-      if(startTower.level < 10 && outgoingLinks.length >= 1
-        || startTower.level < 25 && outgoingLinks.length >= 2
-        || startTower.level < 50 && outgoingLinks.length >= 3
-        || startTower.level < 90 && outgoingLinks.length >= 4
+      if(startTower.level < 15 && outgoingLinks.length >= 1
+        || startTower.level < 40 && outgoingLinks.length >= 2
+        || startTower.level < 75 && outgoingLinks.length >= 3
+        // || startTower.level < 90 && outgoingLinks.length >= 4
         ) {
             startTower = null;
             isDragging = false;
@@ -707,10 +837,31 @@ function gameLoop() {
 
   // Update and draw units
   units.forEach(unit => updateUnit(unit, delay));
+  // Check for collisions between units of different players
+  for (let i = 0; i < units.length; i++) {
+    for (let j = i + 1; j < units.length; j++) {
+      const unit1 = units[i];
+      const unit2 = units[j];
+      if (unit1.player !== unit2.player && checkCollision(unit1, unit2)) {
+        // Destroy both units and create explosions
+        explosions.push(createExplosion(unit1.x, unit1.y));
+        explosions.push(createExplosion(unit2.x, unit2.y));
+        units.splice(j, 1); // Remove unit2 first to avoid index issues
+        units.splice(i, 1);
+        i--; // Decrement i to account for the removed unit
+        break; // Exit the inner loop since unit1 is already removed
+      }
+    }
+  }
   units.forEach(drawUnit);
 
   // Draw towers
   towers.forEach(drawTower);
+
+  // Update and draw explosions
+  explosions.forEach(explosion => explosion.update(delay));
+  explosions.forEach(explosion => explosion.draw());
+  explosions = explosions.filter(explosion => explosion.size() > 0);
 
   requestAnimationFrame(gameLoop);
   performancePrevious = currentTime
@@ -727,8 +878,6 @@ showMenu();
 // Start the Game loop
 // gameLoop(); // Useless, it is included in the loadLevel()
 
-// Start the AI loop
-aiLoop();
 </script>
 </body>
 </html>
