@@ -612,7 +612,7 @@ function showMenu() {
   for (let i = 0; i < levels.length; i++) {
     const option = document.createElement("option");
     option.value = i;
-    option.text = `Level ${i + 1}`;
+    option.text = `Level ${i + 1}${levels[i].description ? ' - ' + levels[i].description : ''}`;
     levelSelect.add(option);
   }
   levelSelect.value = currentLevelIndex;

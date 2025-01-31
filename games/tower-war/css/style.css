@@ -16,9 +16,10 @@ canvas {
   overflow: hidden;
 }
 
-h2 {
+h1, h2 {
+  font-size: x-large;
   font-weight: bolder;
-  margin: 0.75dvh 0;
+  margin: 1dvh 0 5dvh;
 }
 
 #menu {
@@ -46,11 +47,13 @@ h2 {
 
 #rulesContent ul {
   list-style: circle;
-  padding: 2rem;
+  padding: 2dvw;
+  overflow: auto;
+  max-height: 60dvh;
 }
 
 #rulesContent li {
-  margin-bottom: 10px;
+  margin-bottom: 2dvh;
 }
 
 #aboutContent,
@@ -71,10 +74,13 @@ h2 {
 
 #aboutContent div,
 #optionsContent div {
-  padding: 1.5rem 0;
+  padding: 2dvh 0;
+
+  overflow: auto;
+  max-height: 60dvh;
 }
 
 #aboutContent p,
 #optionsContent p {
-  padding: 0.5rem 2rem;
+  padding: 2dvh 2dvw;
 }
