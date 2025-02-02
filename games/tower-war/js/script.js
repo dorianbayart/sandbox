@@ -367,14 +367,14 @@ function drawUnit(unit) {
 
 function createExplosion(x, y) {
   const particles = [];
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 40; i++) {
     particles.push({
       x: x,
       y: y,
       angle: Math.random() * Math.PI * 2,
       speed: Math.random() * 6,
-      size: Math.random() * 0.075 + 0.025,
-      life: Math.random() * 800 + 600, // Lifetime in milliseconds
+      size: Math.random() * 0.1 + 0.05,
+      life: Math.random() * 1200 + 600, // Lifetime in milliseconds
     });
   }
 
