@@ -30,9 +30,33 @@
       <select id="aiLevelSelect"></select>
     </div>
     <button id="startGameButton">Start Game</button>
+    <button id="randomMapButton">Generate a random map</button>
     <button id="aboutButton">About</button>
     <button id="rulesButton">Rules</button>
     <button id="optionsButton">Options</button>
+  </div>
+
+  <div id="randomMapContent">
+    <h2>Random Map</h2>
+    <div>
+      <label for="aiNumberSelect">Number of AI Players:</label>
+      <select id="aiNumberSelect">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select>
+    </div>
+    <div>
+      <label for="mapSizeSelect">Map size:</label>
+      <select id="mapSizeSelect">
+        <option value="2">Small</option>
+        <option value="3">Medium</option>
+        <option value="5">Big</option>
+        <option value="8">Huge</option>
+      </select>
+    </div>
+    <button id="hideRandomMap">Close</button>
+    <button id="startRandomButton">Start Game</button>
   </div>
 
   <div id="aboutContent">

@@ -1,5 +1,6 @@
 import levels from "./levels.js"; // Import the levels array
 import tutorialSteps from "./tutorial.js"; // Import tutorial instructions
+import generateMap from "./mapGenerator.js"; // Import the map generator
 
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
@@ -48,11 +49,19 @@ let startTower = null,
 
 let performancePrevious = performance.now();
 
-function loadLevel(levelIndex) {
+function loadLevel(levelIndex, map) {
   currentStep = (levelIndex === 0 ? 0 : Infinity);
-  currentLevelIndex = levelIndex;
-  towers = JSON.parse(JSON.stringify(levels[currentLevelIndex].towers));
-  links = JSON.parse(JSON.stringify(levels[currentLevelIndex].links));
+  if(map) {
+    console.log(map)
+    // currentLevelIndex = levelIndex;
+    towers = JSON.parse(JSON.stringify(map.towers));
+    links = JSON.parse(JSON.stringify(map.links));
+  } else {
+    currentLevelIndex = levelIndex;
+    towers = JSON.parse(JSON.stringify(levels[currentLevelIndex].towers));
+    links = JSON.parse(JSON.stringify(levels[currentLevelIndex].links));
+  }
+  
   units = []; // Reset units when loading a new level
   explosions = []; // Reset explosions
   gamePaused = false;
@@ -104,11 +113,11 @@ function calculateDisplayRatio() {
     maxY = Math.max(maxY, tower.y + tower.radius);
   });
 
-  const levelWidth = maxX + minX; //+ 4 * towers[0]?.radius;
-  const levelHeight = maxY + minY; //+ 4 * towers[0]?.radius;
+  const levelWidth = maxX + minX + 4 * towers[0]?.radius;
+  const levelHeight = maxY + minY + 4 * towers[0]?.radius;
   const canvasRatio = canvas.width / canvas.height;
   const levelRatio = levelWidth / levelHeight;
-
+  console.log(levelWidth, levelHeight, towers)
   if (canvasRatio > levelRatio) return canvas.height / levelHeight / DPR; // Canvas is wider than level, fit by height
   return canvas.width / levelWidth / DPR; // Canvas is taller than level, fit by width
 }
@@ -515,9 +524,12 @@ document.addEventListener("visibilitychange", () => {
 
 // Add event listeners to the buttons
 document.getElementById('startGameButton').addEventListener('click', startGame);
+document.getElementById('startRandomButton').addEventListener('click', startRandomMap);
+document.getElementById('randomMapButton').addEventListener('click', showRandomMap);
 document.getElementById('aboutButton').addEventListener('click', showAbout);
 document.getElementById('rulesButton').addEventListener('click', showRules);
 document.getElementById('optionsButton').addEventListener('click', showOptions);
+document.getElementById('hideRandomMap').addEventListener('click', hideRandomMap);
 document.getElementById('hideAbout').addEventListener('click', hideAbout);
 document.getElementById('hideRules').addEventListener('click', hideRules);
 document.getElementById('hideOptions').addEventListener('click', hideOptions);
@@ -640,6 +652,26 @@ function startGame() {
   aiLevel = aiLevels[document.getElementById("aiLevelSelect").value];
   loadLevel(parseInt(levelIndex));
   hideMenu();
+}
+
+function startRandomMap() {
+  const numAIPlayers = document.getElementById("aiNumberSelect").value;
+  const towersPerPlayer = document.getElementById("mapSizeSelect").value;
+
+  aiLevel = aiLevels[document.getElementById("aiLevelSelect").value];
+  loadLevel(null, generateMap(numAIPlayers, towersPerPlayer));
+  hideRandomMap();
+  hideMenu();
+}
+
+function showRandomMap() {
+    document.getElementById("menu").style.display = "none";
+  document.getElementById("randomMapContent").style.display = "flex";
+}
+
+function hideRandomMap() {
+    document.getElementById("menu").style.display = "flex";
+  document.getElementById("randomMapContent").style.display = "none";
 }
 
 function showAbout() {

@@ -39,8 +39,11 @@ h1, h2 {
 #menu select,
 #menu label,
 #aboutContent button,
-#rulesContent button,
-#optionsContent button {
+#optionsContent button,
+#randomMapContent button,
+#randomMapContent select,
+#randomMapContent label,
+#rulesContent button {
   margin: 0.75dvh 0;
   padding: 0.5dvh 0.5dvw;
 }
@@ -57,8 +60,9 @@ h1, h2 {
 }
 
 #aboutContent,
-#rulesContent,
-#optionsContent {
+#optionsContent,
+#randomMapContent,
+#rulesContent {
   min-width: 350px;
   /* width: min(350px, 75dvw); */
   position: absolute;
@@ -73,7 +77,8 @@ h1, h2 {
 }
 
 #aboutContent div,
-#optionsContent div {
+#optionsContent div,
+#randomMapContent div {
   padding: 2dvh 0;
 
   overflow: auto;
