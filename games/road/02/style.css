@@ -1,0 +1,20 @@
+* {
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    margin: 0;
+    overflow: hidden; /* Prevent scrollbars */
+    background-color: #222; /* Dark background for the game */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Make body full height of viewport */
+}
+
+canvas {
+    background-color: #333; /* Grey background for road initially, will be drawn dynamically in JS */
+    display: block; /* Prevent scrollbars around canvas */
+}
