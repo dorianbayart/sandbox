@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+
+    <title>Hexagon Gravity</title>
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 20px;
+            text-align: center;
+            font-weight: 250;
+            color: #333;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-weight: bolder;
+        }
+
+        canvas {
+            width: 200px;
+            height: 200px;
+            border: 1px solid burlywood;
+        }
+
+        p#controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+
+</head>
+<body>
+
+  <header>
+    <h1 class="cursive">Hexagon Gravity</h1>
+  </header>
+
+  <main>
+    <section>
+      <canvas id="model"></canvas>
+    </section>
+    <section>
+        <p id="controls">
+            <input id="slider" />
+            <button id="bump">Bump</button>
+        </p>
+    </section>
+  </main>
+
+  <footer>
+    <div id="footer">&copy; 2000 <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a></div>
+  </footer>
+
+  <script>
+    const currentYear = new Date().getFullYear()
+    document.querySelector('footer div#footer').innerHTML = `&copy; ${currentYear} <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a>`
+  </script>
+
+<script>
+const canvas = document.getElementById('model');
+const ctx = canvas.getContext('2d');
+
+let centerX = canvas.width / 2;
+let centerY = canvas.height / 2;
+const radius = 100;
+const numSides = 6;
+
+let rotationAngle = 0;
+let ballX = centerX;
+let ballY = centerY;
+let ballRadius = 4;
+let ballVX = (Math.random() - 0.5) * 100;
+let ballVY = - Math.random() * 150;
+let gravity = 200;
+let friction = 0.98;
+
+let lastTime = performance.now();
+
+// GUI controls
+const rotationSpeedSlider = document.getElementById('slider');
+rotationSpeedSlider.type = 'range';
+rotationSpeedSlider.min = '-0.075'; // Allow reverse rotation
+rotationSpeedSlider.max = '0.075';
+rotationSpeedSlider.step = '0.001';
+rotationSpeedSlider.value = '0.02'; // Initial speed
+
+const bumpButton = document.getElementById('bump');
+bumpButton.textContent = 'Bump Ball';
+
+bumpButton.addEventListener('click', () => {
+    // Apply a small impulse to the ball
+    //ballVX += (Math.random() - 0.5) * 100; // Random x impulse
+    ballVY -= 200; // Random y impulse
+
+});
+
+window.addEventListener('resize', onWindowResize, false);
+onWindowResize();
+function onWindowResize() {
+    canvas.width = innerWidth / 2
+    canvas.height = innerHeight / 2
+    canvas.style.width = (canvas.width) + 'px'
+    canvas.style.height = (canvas.height) + 'px'
+    
+    centerX = canvas.width / 2;
+    centerY = canvas.height / 2;
+    ballX = centerX;
+    ballY = centerY;
+}
+
+function resetBall() {
+    ballX = centerX;
+    ballY = centerY;
+    ballVX = (Math.random() - 0.5) * 100;
+    ballVY = - Math.random() * 150;
+}
+
+function drawHexagon() {
+  ctx.beginPath();
+  for (let i = 0; i <= numSides; i++) {
+    const angle = 2 * Math.PI * i / numSides + rotationAngle;
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  }
+  ctx.strokeStyle = 'black';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawBall() {
+  ctx.beginPath();
+  ctx.arc(ballX, ballY, ballRadius, 0, 2 * Math.PI);
+  ctx.fillStyle = 'red';
+  ctx.fill();
+}
+
+function updateBall(deltaTime) {
+    ballVY += gravity * deltaTime / 1000;
+    ballX += ballVX * deltaTime / 1000;
+    ballY += ballVY * deltaTime / 1000;
+
+    for (let i = 0; i < numSides; i++) {
+        const angle1 = 2 * Math.PI * i / numSides;
+        const x1 = centerX + radius * Math.cos(angle1 + rotationAngle);
+        const y1 = centerY + radius * Math.sin(angle1 + rotationAngle);
+
+        const angle2 = 2 * Math.PI * (i + 1) / numSides;
+        const x2 = centerX + radius * Math.cos(angle2 + rotationAngle);
+        const y2 = centerY + radius * Math.sin(angle2 + rotationAngle);
+
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const segmentLength = Math.sqrt(dx * dx + dy * dy);
+
+        const nx = -dy / segmentLength; // Normal vector (pointing outwards)
+        const ny = dx / segmentLength;
+
+        // Project ball's center onto the line (not the segment yet)
+        const dot = ((ballX - x1) * dx + (ballY - y1) * dy) / (segmentLength * segmentLength);
+        const projectedX = x1 + dot * dx;
+        const projectedY = y1 + dot * dy;
+
+        // Check if the projected point is within the segment
+        if (dot >= 0 && dot <= 1) {
+            const dist = Math.sqrt((ballX - projectedX) * (ballX - projectedX) + (ballY - projectedY) * (ballY - projectedY));
+
+            if (dist < ballRadius) {
+                // Collision!
+
+                // Calculate the overlap
+                const overlap = ballRadius - dist;
+
+                // Move the ball out of collision
+                ballX += nx * overlap;
+                ballY += ny * overlap;
+
+                // Calculate reflection (using the normal)
+                const dotProduct = ballVX * nx + ballVY * ny;
+                ballVX -= 2 * dotProduct * nx;
+                ballVY -= 2 * dotProduct * ny;
+
+                // Apply friction
+                ballVX *= friction;
+                ballVY *= friction;
+            }
+        }
+    }
+
+
+
+    // Bounce off the canvas edges (Corrected bouncing logic)
+    if (ballY + ballRadius > canvas.height) {
+        ballY = canvas.height - ballRadius;
+        ballVY *= -friction;
+        ballVX *= friction;
+    } else if (ballY - ballRadius < 0) {
+        ballY = ballRadius;
+        ballVY *= -friction;
+        ballVX *= friction;
+    }
+
+    if (ballX + ballRadius > canvas.width) {
+        ballX = canvas.width - ballRadius;
+        ballVX *= -friction;
+        ballVY *= friction;
+    } else if (ballX - ballRadius < 0) {
+        ballX = ballRadius;
+        ballVX *= -friction;
+        ballVY *= friction;
+    }
+
+    if(ballY < centerY - radius*1.1 || ballY > centerY + radius*1.1 || ballX < centerX - radius*1.1 || ballX > centerX + radius*1.1) {
+        resetBall()
+    }
+}
+
+function animate(currentTime) {
+  const deltaTime = currentTime - lastTime;
+  lastTime = currentTime;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const rotationSpeed = parseFloat(rotationSpeedSlider.value); // Get rotation speed from slider
+  rotationAngle += rotationSpeed * deltaTime / 16.666; // Adjust rotation speed
+  drawHexagon();
+
+  updateBall(deltaTime);
+  drawBall();
+
+  requestAnimationFrame(animate);
+}
+
+animate(performance.now());
+</script>
+</body>
+</html>
