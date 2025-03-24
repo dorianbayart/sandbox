@@ -232,19 +232,21 @@ import { Application, Assets, Graphics, Sprite, Text, TextStyle } from "./pixi.m
 
     let yOffset = 10; // Vertical spacing for text elements
     const textStyle = new TextStyle({
-      fontFamily: "system-ui, Arial", // Or your pixel font
+      fontFamily: "monospace, system-ui, Arial",
       fontSize: 14,
+      padding: 25,
       fill: uiTextColor,
     });
     const buttonTextStyle = new TextStyle({
-      fontFamily: "system-ui, Arial",
+      fontFamily: "monospace, system-ui, Arial",
       fontSize: 12,
       fill: 0x000000, // Black text for buttons
-      fontWeight: "bold",
+      padding: 25,
+      fontWeight: "",
     });
 
     // --- Currency Display ---
-    currencyText = new Text(`$ ${playerCurrency}`, textStyle);
+    currencyText = new Text(`$ ${playerCurrency}   `, textStyle);
     currencyText.x = 10;
     currencyText.y = yOffset;
     statsContainer.addChild(currencyText);
@@ -296,7 +298,7 @@ import { Application, Assets, Graphics, Sprite, Text, TextStyle } from "./pixi.m
     button.interactive = true; // Make button interactive
     button.cursor = "pointer"; // Change cursor on hover
 
-    const buttonText = new Text(`Upgrade ${statName} (${cost} C)`, textStyle);
+    const buttonText = new Text(`Upgrade ${statName} - $${cost}`, textStyle);
     buttonText.x = 10;
     buttonText.y = 4;
     button.addChild(buttonText);
