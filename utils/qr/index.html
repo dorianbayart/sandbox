@@ -8,17 +8,55 @@
 
   <link rel="stylesheet" href="knacss.css">
   <link rel="stylesheet" href="common.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"
+          integrity="sha512-pUhApVQtLbnpLtJn6DuzDD5o2xtmLJnJ7oBoMsBnzOkVkpqofGLGPaBJ6ayD2zQe3lCgCibhJBi4cj5wAxwVKA=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+
+  <script type="module" src="qr.mjs"></script>
 </head>
 <body>
 
   <header>
-    <h1 class="cursive">QR Code</h1>
+    <h1 class="cursive">QR Code Generator</h1>
   </header>
 
   <main>
-    <section>
-      <h2 class="cursive"></h2>
-      <img src="https://quickchart.io/qr?format=svg&text=https://github.com/dorianbayart/sandbox" title="https://github.com/dorianbayart/sandbox" alt="QR Code to https://github.com/dorianbayart/sandbox" />
+    <section class="centered">
+      <form autocomplete="off">
+        <p>
+          <label for="qr-value">Data</label>
+          <input id="qr-value" name="qr-value" type="text" placeholder="QR Code Value" title="QR Code Value" value="3.141592654" spellcheck="false">
+        </p>
+
+        <p>
+          <label for="qr-size">Size (pixels)</label>
+          <input id="qr-size" name="qr-size" type="number" step="1" min="42" title="QR Code Size in pixels" value="180">
+        </p>
+
+        <p>
+          <label for="qr-error-correction">Error Correction</label>
+          <select id="qr-error-correction" name="qr-error-correction">
+            <option value="L">L - 7% damage</option>
+            <option value="M">M - 15% damage</option>
+            <option value="Q">Q - 25% damage</option>
+            <option value="H">H - 30% damage</option>
+          </select>
+        </p>
+      </form>
+    </section>
+
+    <section class="centered">
+      <h2 class="cursive">PNG Format</h2>
+
+      <canvas id="qr"></canvas>
+    </section>
+
+    <section class="centered">
+      <h2 class="cursive">SVG Format</h2>
+
+      <div id="svg-content"></div>
     </section>
   </main>
 

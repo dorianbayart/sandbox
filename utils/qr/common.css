@@ -2,6 +2,10 @@
   font-family: cursive;
 }
 
+p {
+  margin: 0;
+}
+
 body {
   display: flex;
   flex-direction: column;
@@ -16,6 +20,29 @@ main {
 section {
   margin-top: 1rem;
   margin-bottom: 1rem;
+}
+
+section.centered {
+  text-align: center;
+}
+
+section.centered * {
+  text-align: center;
+}
+
+canvas#qr {
+  margin: 0.5rem;
+  image-rendering: pixelated;
+}
+
+#qr-error-correction,
+#qr-size,
+#qr-value {
+  margin: 0.5rem;
+  border: 1px solid gray;
+  border-radius: 4px;
+  padding: 0 0.75rem;
+  height: 2rem;
 }
 
 footer {
