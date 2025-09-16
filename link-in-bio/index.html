@@ -48,6 +48,11 @@
           --gradient-2-header: rgba(85, 107, 47, 0.54); /* darkolivegreen */
           --gradient-1-body: rgba(100, 149, 237, 0.84); /* cornflowerblue */
           --gradient-2-body: rgba(85, 107, 47, 0.84); /* darkolivegreen */
+          --image-background-fallback: url(./assets/unsplash_photo-1731569348001-e49c36947289_fm-jpg_blur-96_q-25_auto-true.jpg);
+          --image-background: image-set(
+            url(./assets/unsplash_photo-1731569348001-e49c36947289_fm-avif_blur-96_q-33_auto-true.avif),
+            url(./assets/unsplash_photo-1731569348001-e49c36947289_fm-jpg_blur-96_q-25_auto-true.jpg)
+          );
         }
       }
 
@@ -84,6 +89,11 @@
           --gradient-2-header: rgba(85, 107, 47, 0.24); /* darkolivegreen */
           --gradient-1-body: rgba(100, 149, 237, 0.84); /* cornflowerblue */
           --gradient-2-body: rgba(85, 107, 47, 0.84); /* darkolivegreen */
+          --image-background-fallback: url(./assets/unsplash_photo-1663077401478-59d3f4aa0c3d_fm-jpg_blur-255_q-25.jpg);
+          --image-background: image-set(
+            url(./assets/unsplash_photo-1663077401478-59d3f4aa0c3d_fm-avif_blur-255_q-40.avif),
+            url(./assets/unsplash_photo-1663077401478-59d3f4aa0c3d_fm-jpg_blur-255_q-25.jpg)
+          );
         }
       }
 
@@ -98,8 +108,10 @@
       body {
         background-color: var(--main-color);
         background: linear-gradient(-70deg, var(--gradient-1-body), var(--background), var(--gradient-2-body));
-        background-size: 250% 100%;
+        background-size: cover;
         background-position: center;
+        background-image: var(--image-background-fallback);
+        background-image: var(--image-background);
       }
       header {
         display: flex;
@@ -205,10 +217,10 @@
     <svg width="0" height="0">
       <filter id="blur-and-scale" width="400%" height="400%" y="-100%" x="-100%">
         <feGaussianBlur in="SourceGraphic" result="blurred" stdDeviation="12"></feGaussianBlur>
-        <feColorMatrix type="matrix" in="blurred" values="-1 0 0 0 1
-                                                            0 -1 0 0 1
-                                                            0 0 -1 0 1
-                                                            0 0 0 1 0"></feColorMatrix>
+        <feColorMatrix type="matrix" in="blurred" values="-1  0 0 0 1
+                                                           0 -1 0 0 1
+                                                           0 0 -1 0 1
+                                                           0 0  0 1 0"></feColorMatrix>
         <feComposite in="SourceGraphic" operator="over"></feComposite>
       </filter>
     </svg>
