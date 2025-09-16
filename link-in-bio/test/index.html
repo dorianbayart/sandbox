@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Link-in-Bio</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- AlpineJS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body x-data="{ activeSection: 'about' }">
+
+  <header class="header">
+    <h1>Welcome to My Link-in-Bio Page</h1>
+  </header>
+
+  <nav class="nav">
+    <ul>
+      <li><a href="#about" @click.prevent="activeSection = 'about'" :class="{ active: activeSection === 'about' }">About Me</a></li>
+      <li><a href="#projects" @click.prevent="activeSection = 'projects'" :class="{ active: activeSection === 'projects' }">Projects</a></li>
+      <li><a href="#jobs" @click.prevent="activeSection = 'jobs'" :class="{ active: activeSection === 'jobs' }">Jobs</a></li>
+      <li><a href="#socials" @click.prevent="activeSection = 'socials'" :class="{ active: activeSection === 'socials' }">Socials</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <!-- About Me Section -->
+    <section id="about" x-show="activeSection === 'about'" class="section">
+      <h2>About Me</h2>
+      <p>Write a brief introduction about yourself here.</p>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" x-show="activeSection === 'projects'" class="section">
+      <h2>Projects</h2>
+      <ul>
+        <li><a href="#" target="_blank">Project 1</a></li>
+        <li><a href="#" target="_blank">Project 2</a></li>
+        <!-- Add more projects as needed -->
+      </ul>
+    </section>
+
+    <!-- Jobs Section -->
+    <section id="jobs" x-show="activeSection === 'jobs'" class="section">
+      <h2>Professional Jobs</h2>
+      <ul>
+        <li><a href="#" target="_blank">Job 1</a></li>
+        <li><a href="#" target="_blank">Job 2</a></li>
+        <!-- Add more jobs as needed -->
+      </ul>
+    </section>
+
+    <!-- Social Profiles Section -->
+    <section id="socials" x-show="activeSection === 'socials'" class="section">
+      <h2>Social Profiles</h2>
+      <div class="social-icons">
+        <!-- Add social icons here with links -->
+        <a href="#" target="_blank" aria-label="GitHub"><img src="assets/github-icon.svg" alt="GitHub"></a>
+        <a href="#" target="_blank" aria-label="Twitter"><img src="assets/twitter-icon.svg" alt="Twitter"></a>
+        <!-- Add more social icons as needed -->
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
