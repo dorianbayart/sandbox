@@ -25,11 +25,11 @@
       }
     </script>
 
-    <script src="js/script.js" defer></script>
+    <script src="js/script.js" defer fetchpriority="low"></script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://ipfs.io/">
+    <link rel="preconnect" href="https://fonts.googleapis.com" fetchpriority="high">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin fetchpriority="high">
+    <link rel="preconnect" href="https://ipfs.io/" fetchpriority="low">
 
     <style>
       @media (prefers-color-scheme: light) {
@@ -130,7 +130,7 @@
   </head>
   <body style="opacity: 0">
     <header style="opacity: 0">
-      <video style="opacity: 0" id="profilePicture" width=96 height=96 playsinline autoplay muted loop alt="Animated Profile Picture - Shadowy Super Coder NFT" poster="assets/26.avif">
+      <video style="opacity: 0" id="profilePicture" width=96 height=96 playsinline autoplay muted loop alt="Animated Profile Picture - Shadowy Super Coder NFT" poster="assets/26.avif" fetchpriority="high">
         <source src="https://ipfs.io/ipfs/QmYzbTvmPUgabLHukU7uDGnSvgTJt5gMkrNHctEbrLVM6h/26.webm" type="video/webm" alt="Animated Profile Picture - Shadowy Super Coder NFT" fetchpriority="high">
         <img src="assets/26.avif" type="image/avif" alt="Profile Picture - Shadowy Super Coder NFT - AVIF" fetchpriority="high">
         <p>Your browser does not support the video tag.</p>
