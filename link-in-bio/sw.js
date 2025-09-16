@@ -15,7 +15,7 @@ const CACHED_URLS = [
   'assets/unsplash_photo-1731569348001-e49c36947289_fm-avif_blur-96_q-33_auto-true.avif',
   'assets/unsplash_photo-1663077401478-59d3f4aa0c3d_fm-jpg_blur-255_q-25.jpg',
   'assets/unsplash_photo-1663077401478-59d3f4aa0c3d_fm-avif_blur-255_q-40.avif',
-  'https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..900&display=swap',
+  // 'https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..900&display=swap',
   'https://ipfs.io/ipfs/QmYzbTvmPUgabLHukU7uDGnSvgTJt5gMkrNHctEbrLVM6h/26.webm',
 ]
 const self = this // For scope
