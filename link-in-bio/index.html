@@ -27,8 +27,6 @@
 
     <script src="js/script.js" defer fetchpriority="low"></script>
 
-    <!-- <link rel="preconnect" href="https://fonts.googleapis.com" fetchpriority="high"> -->
-    <!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin fetchpriority="high"> -->
     <link rel="preconnect" href="https://ipfs.io/" fetchpriority="low">
 
     <style>
@@ -48,10 +46,10 @@
           --gradient-2-header: rgba(85, 107, 47, 0.54); /* darkolivegreen */
           --gradient-1-body: rgba(100, 149, 237, 0.84); /* cornflowerblue */
           --gradient-2-body: rgba(85, 107, 47, 0.84); /* darkolivegreen */
-          --image-background-fallback: url(./assets/unsplash_photo-1731569348001-e49c36947289_blur-96_auto-true_optimized.jpg);
+          --image-background-fallback: url(../assets/unsplash_photo-1731569348001-e49c36947289_blur-96_auto-true_optimized.jpg);
           --image-background: image-set(
-            url(./assets/unsplash_photo-1731569348001-e49c36947289_blur-96_auto-true_optimized.avif),
-            url(./assets/unsplash_photo-1731569348001-e49c36947289_blur-96_auto-true_optimized.jpg)
+            url(../assets/unsplash_photo-1731569348001-e49c36947289_blur-96_auto-true_optimized.avif),
+            url(../assets/unsplash_photo-1731569348001-e49c36947289_blur-96_auto-true_optimized.jpg)
           );
         }
       }
@@ -89,10 +87,10 @@
           --gradient-2-header: rgba(85, 107, 47, 0.24); /* darkolivegreen */
           --gradient-1-body: rgba(100, 149, 237, 0.84); /* cornflowerblue */
           --gradient-2-body: rgba(85, 107, 47, 0.84); /* darkolivegreen */
-          --image-background-fallback: url(./assets/unsplash_photo-1582426703277-6aad492eb453_fm-jpg_blur-256_auto-true_optimized.jpg);
+          --image-background-fallback: url(../assets/unsplash_photo-1582426703277-6aad492eb453_fm-jpg_blur-256_auto-true_optimized.jpg);
           --image-background: image-set(
-            url(./assets/unsplash_photo-1582426703277-6aad492eb453_fm-jpg_blur-256_auto-true_optimized.avif),
-            url(./assets/unsplash_photo-1582426703277-6aad492eb453_fm-jpg_blur-256_auto-true_optimized.jpg)
+            url(../assets/unsplash_photo-1582426703277-6aad492eb453_fm-jpg_blur-256_auto-true_optimized.avif),
+            url(../assets/unsplash_photo-1582426703277-6aad492eb453_fm-jpg_blur-256_auto-true_optimized.jpg)
           );
         }
       }
@@ -107,12 +105,12 @@
         background-color: var(--main-color);
       }
       body {
-        background-color: var(--main-color);
+        min-height: 100dvh;
+        margin: 0;
+        padding: 0;
         background: linear-gradient(-70deg, var(--gradient-1-body), var(--background), var(--gradient-2-body));
         background-size: cover;
         background-position: center;
-        background-image: var(--image-background-fallback);
-        background-image: var(--image-background);
       }
       header {
         display: flex;
@@ -128,11 +126,13 @@
       }
     </style>
 
+    <link rel="stylesheet" href="css/style.css">
+
   </head>
   <body>
     <header>
       <video id="profilePicture" width=96 height=96 playsinline autoplay muted loop alt="Animated Profile Picture - Shadowy Super Coder NFT" poster="assets/26_pixellated.avif" fetchpriority="high">
-        <source src="https://ipfs.io/ipfs/QmYzbTvmPUgabLHukU7uDGnSvgTJt5gMkrNHctEbrLVM6h/26.webm" type="video/webm" alt="Animated Profile Picture - Shadowy Super Coder NFT" fetchpriority="high">
+        <source id="profilePictureWebm" data-src="https://ipfs.io/ipfs/QmYzbTvmPUgabLHukU7uDGnSvgTJt5gMkrNHctEbrLVM6h/26.webm" type="video/webm" alt="Animated Profile Picture - Shadowy Super Coder NFT" fetchpriority="low">
         <img src="assets/26_optimized.avif" type="image/avif" alt="Profile Picture - Shadowy Super Coder NFT - AVIF" fetchpriority="low">
         <p>Your browser does not support the video tag.</p>
         <p>The original files are here:
@@ -226,6 +226,4 @@
       </filter>
     </svg>
   </body>
-
-  <link rel="stylesheet" href="css/style.css" fetchpriority="low">
 </html>

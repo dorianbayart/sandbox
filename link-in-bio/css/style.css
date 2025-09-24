@@ -18,13 +18,12 @@
 }
 
 body {
-  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  margin: 0;
-  padding: 0;
   text-align: center;
   color: var(--primary);
+  background-image: var(--image-background-fallback);
+  background-image: var(--image-background);
 }
 
 small {
