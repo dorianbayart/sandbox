@@ -3,10 +3,12 @@
     "short_name": "DorianBayart",
     "description": "Coded from scratch my own link-in-bio page !",
     "icons": [
-        { "src": "assets/26.avif", "type": "image/avif", "sizes": "960x960" },
-        { "src": "assets/26.webp", "type": "image/webp", "sizes": "960x960" },
-        { "src": "assets/26.png", "type": "image/png", "sizes": "1920x1920", "purpose": "maskable" },
-        { "src": "assets/26.png", "type": "image/png", "sizes": "1920x1920" }
+        { "src": "assets/26_pixellated.png", "type": "image/png", "sizes": "64x64" },
+        { "src": "assets/26_optimized.avif", "type": "image/avif", "sizes": "480x480" },
+        { "src": "assets/26_optimized.png", "type": "image/png", "sizes": "480x480" },
+        { "src": "assets/26_optimized.png", "type": "image/png", "sizes": "480x480", "purpose": "maskable" },
+        { "src": "assets/26_full.png", "type": "image/png", "sizes": "1920x1920" },
+        { "src": "assets/26_full.png", "type": "image/png", "sizes": "1920x1920", "purpose": "maskable" }
     ],
     "display": "standalone",
     "background_color": "#D7F5EF",

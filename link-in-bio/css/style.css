@@ -1,8 +1,12 @@
 /* @import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..900&display=swap'); */
 
 * {
-  transition: all 400ms ease-in-out, transform 75ms, box-shadow 125ms, margin 125ms, padding 125ms;
-  box-sizing: border-box;
+  transition: color 750ms ease-in-out,
+              background 250ms ease-in-out,
+              transform 75ms ease-in-out,
+              filter 125ms ease-in-out,
+              box-shadow 125ms ease-in-out;
+  box-sizing: border-box ease-in-out;
 }
 
 .backlight {
