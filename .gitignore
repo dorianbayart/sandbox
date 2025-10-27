@@ -1,4 +1,11 @@
-
+# Mac-os
 .DS_Store
 
+# Node modules
+/games/pixel-fortress/node_modules
+
+# Assets
 /games/pixel-fortress/assets/unused
+
+# dist folder
+/games/pixel-fortress/dist
