@@ -297,7 +297,7 @@ class Car {
         if (controlType != "DUMMY") {
             this.sensor = new Sensor(this);
             this.brain = new NeuralNetwork(
-                [this.sensor.rayCount, 6, 4]
+                [this.sensor.rayCount, 8, 6, 4]
             );
         }
         this.controls = new Controls(controlType);
@@ -313,7 +313,7 @@ class Car {
         //}
         if (this.sensor) {
             this.sensor.update(roadBorders, traffic);
-            if (doDamageAssessment && this.controlType === "AI") {
+            if (!this.damaged && doDamageAssessment && this.controlType === "AI") {
                 const offsets = this.sensor.readings.map(
                     s => s == null ? 0 : 1 - s.offset
                 );
@@ -323,6 +323,11 @@ class Car {
                 this.controls.left = outputs[1];
                 this.controls.right = outputs[2];
                 this.controls.reverse = outputs[3];
+
+                // Add bias: AI should prefer moving forward
+                if (!this.controls.forward && !this.controls.reverse) {
+                    this.controls.forward = true;
+                }
             }
         }
     }
@@ -409,6 +414,7 @@ class Car {
         } else {
             ctx.fillStyle = color;
         }
+        if(!this.polygon) return;
         ctx.beginPath();
         ctx.moveTo(this.polygon[0].x, this.polygon[0].y);
         for (let i = 1; i < this.polygon.length; i++) {
@@ -520,8 +526,10 @@ class Level {
 
 // Function definitions
 function save() {
-    localStorage.setItem("bestBrain",
-        JSON.stringify(bestCar.brain));
+    if (bestCar && bestCar.brain) {
+        localStorage.setItem("bestBrain", JSON.stringify(bestCar.brain));
+        console.log("💾 Brain saved manually");
+    }
 }
 
 function discard() {
@@ -531,9 +539,118 @@ function discard() {
 function generateCars(N) {
     const cars = [];
     for (let i = 1; i <= N; i++) {
-        cars.push(new Car(road.getLaneCenter(1), canvas.height - 100, 30, 50, "AI"));
+        cars.push(new Car(road.getLaneCenter(1) + 2*i - N, canvas.height - 100, 30, 50, "AI"));
     }
     return cars;
+}
+
+function generateTrafficPattern() {
+    const patterns = [
+        // Single lane blocked
+        [{ lane: 0, offset: 0 }],
+        [{ lane: 1, offset: 0 }],
+        [{ lane: 2, offset: 0 }],
+        
+        // Two lanes blocked
+        [{ lane: 0, offset: 0 }, { lane: 1, offset: 0 }],
+        [{ lane: 1, offset: 0 }, { lane: 2, offset: 0 }],
+        [{ lane: 0, offset: 0 }, { lane: 2, offset: 0 }],
+        
+        // Diagonal patterns
+        [{ lane: 0, offset: 0 }, { lane: 1, offset: -100 }],
+        [{ lane: 1, offset: 0 }, { lane: 2, offset: -100 }],
+        [{ lane: 2, offset: 0 }, { lane: 1, offset: -100 }],
+        
+        // Zigzag
+        [{ lane: 0, offset: 0 }, { lane: 2, offset: -150 }, { lane: 1, offset: -300 }],
+        
+        // All lanes with gap
+        [{ lane: 0, offset: 0 }, { lane: 1, offset: -80 }, { lane: 2, offset: -160 }]
+    ];
+    
+    return patterns[Math.floor(Math.random() * patterns.length)];
+}
+
+function spawnTraffic(baseY) {
+    const pattern = generateTrafficPattern();
+    const newCars = [];
+    
+    pattern.forEach(({ lane, offset }) => {
+        console.log(road.getLaneCenter(lane), baseY + offset)
+        newCars.push(
+            new Car(
+                road.getLaneCenter(lane), 
+                baseY + offset, 
+                30, 
+                50, 
+                "DUMMY", 
+                1.5
+            )
+        );
+    });
+    
+    return newCars;
+}
+
+function updateTrafficSpawning() {
+    const leadY = Math.min(playerCar.y, bestCar.y);
+    
+    if (leadY - lastTrafficSpawnY < -TRAFFIC_SPAWN_INTERVAL) {
+        const spawnY = leadY - TRAFFIC_SPAWN_DISTANCE;
+        const newTraffic = spawnTraffic(spawnY);
+        traffic.push(...newTraffic);
+        lastTrafficSpawnY = spawnY;
+    }
+    
+    // CORRECTION: Remove traffic that's behind (higher Y value)
+    for (let i = traffic.length - 1; i >= 0; i--) {
+        if (traffic[i].y > leadY + TRAFFIC_REMOVE_DISTANCE) {  // Changed condition
+            traffic.splice(i, 1);
+        }
+    }
+}
+
+function resetGeneration() {
+    // Find best car: furthest distance + bonus for being alive
+    bestCar = cars.reduce((best, current) => {
+        const bestScore = -best.y + (best.damaged ? 0 : 100);
+        const currentScore = -current.y + (current.damaged ? 0 : 100);
+        return currentScore > bestScore ? current : best;
+    });
+    
+    const bestDistance = -bestCar.y;
+    if (bestDistance > generationBestDistance) {
+        generationBestDistance = bestDistance;
+        localStorage.setItem("bestBrain", JSON.stringify(bestCar.brain));
+        console.log(`🏆 New record! Generation ${generation}: ${bestDistance.toFixed(0)}px`);
+    }
+    
+    // Create new generation from best car
+    for (let i = 0; i < cars.length; i++) {
+        cars[i].brain = JSON.parse(JSON.stringify(bestCar.brain));
+        cars[i].damaged = false;
+        cars[i].x = road.getLaneCenter(1);
+        cars[i].y = canvas.height - 100;
+        cars[i].speed = 0;
+        cars[i].angle = 0;
+        
+        if (i != 0) {
+            // Vary mutation rate: some high, some low
+            const mutationRate = i < cars.length / 2 ? 0.1 : 0.3;
+            NeuralNetwork.mutate(cars[i].brain, mutationRate);
+        }
+    }
+    
+    traffic.length = 0;
+    lastTrafficSpawnY = canvas.height - 100;
+    
+    for (let i = 0; i < 5; i++) {
+        const spawnY = lastTrafficSpawnY - (i + 1) * TRAFFIC_SPAWN_INTERVAL;
+        traffic.push(...spawnTraffic(spawnY));
+        lastTrafficSpawnY = spawnY;
+    }
+    
+    generation++;
 }
 
 function animate() {
@@ -552,7 +669,9 @@ function animate() {
         traffic[i].update(road.borders, cars.concat([playerCar]), true); 
     }
     for (let i = 0; i < cars.length; i++) {
-        cars[i].update(road.borders, traffic.concat([playerCar]), true); 
+        // Include other AI cars in the sensor detection
+        const otherCars = cars.filter((c, index) => index !== i);
+        cars[i].update(road.borders, traffic/*.concat(otherCars)*/.concat([playerCar]), true);
     }
 
     bestCar = cars.find(
@@ -560,6 +679,18 @@ function animate() {
             ...cars.map(c => c.y)
         )
     );
+
+    // Manage dynamic traffic spawning
+    updateTrafficSpawning();
+
+    // Check if all AI cars are damaged OR if generation has stalled
+    const allDamaged = cars.every(c => c.damaged);
+    const bestStuck = bestCar.damaged || Math.abs(bestCar.speed) < 0.1;
+
+    // Reset after a timeout even if some cars are alive but stuck
+    if (allDamaged || (bestStuck && cars.filter(c => !c.damaged).length < 3)) {
+        resetGeneration();
+    }
 
     ctx.save();
     
@@ -578,6 +709,11 @@ function animate() {
 
     ctx.restore();
 
+    // Update UI
+    document.getElementById('generation').textContent = generation;
+    document.getElementById('bestDistance').textContent = generationBestDistance.toFixed(0);
+    document.getElementById('alive').textContent = cars.filter(c => !c.damaged).length;
+
     requestAnimationFrame(animate);
 }
 
@@ -592,10 +728,19 @@ const ctx = canvas.getContext("2d");
 
 const road = new Road(canvas.width / 2, canvas.width * 0.9);
 
-const N = 3; // Number of AI cars
+const N = 100; // Number of AI cars
 const playerCar = new Car(road.getLaneCenter(1), canvas.height - 100, 30, 50, "PLAYER");
 const cars = generateCars(N);
 let bestCar = cars[0];
+let generation = 1;
+let generationBestDistance = 0;
+
+// Traffic spawning configuration
+const TRAFFIC_SPAWN_DISTANCE = 400; // Spawn traffic this far ahead
+const TRAFFIC_REMOVE_DISTANCE = 200; // Remove traffic this far behind
+const TRAFFIC_SPAWN_INTERVAL = 200; // Min distance between spawns
+let lastTrafficSpawnY = 0;
+
 if (localStorage.getItem("bestBrain")) {
     for (let i = 0; i < cars.length; i++) {
         cars[i].brain = JSON.parse(
@@ -608,14 +753,14 @@ if (localStorage.getItem("bestBrain")) {
     
 }
 
-const traffic = [
-    new Car(road.getLaneCenter(2), -100, 30, 50, "DUMMY", 2),
-    new Car(road.getLaneCenter(0), -300, 30, 50, "DUMMY", 2),
-    new Car(road.getLaneCenter(2), -300, 30, 50, "DUMMY", 2),
-    new Car(road.getLaneCenter(0), -500, 30, 50, "DUMMY", 2),
-    new Car(road.getLaneCenter(1), -500, 30, 50, "DUMMY", 2),
-    new Car(road.getLaneCenter(1), -700, 30, 50, "DUMMY", 2),
-    new Car(road.getLaneCenter(2), -700, 30, 50, "DUMMY", 2)
-];
+const traffic = [];
+lastTrafficSpawnY = canvas.height - 100; // Start from player position
+
+// Spawn initial traffic
+for (let i = 0; i < 5; i++) {
+    const spawnY = lastTrafficSpawnY - (i + 1) * TRAFFIC_SPAWN_INTERVAL;
+    traffic.push(...spawnTraffic(spawnY));
+    lastTrafficSpawnY = spawnY;
+}
 
 animate();

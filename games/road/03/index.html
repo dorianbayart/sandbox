@@ -8,11 +8,20 @@
 </head>
 <body>
     <h1>Neural Race</h1>
+
+    <div id="info" style="position: absolute; top: 10px; left: 10px; color: white; font-family: monospace;">
+        <div>Generation: <span id="generation">1</span></div>
+        <div>Best: <span id="bestDistance">0</span>px</div>
+        <div>Alive: <span id="alive">0</span></div>
+    </div>
+
     <canvas id="gameCanvas"></canvas>
+
     <div class="verticalButtons">
         <button onclick="save()">💾 Save</button>
         <button onclick="discard()">🗑️ Discard</button>
     </div>
+    
     <script src="game.js"></script>
 </body>
 </html>
