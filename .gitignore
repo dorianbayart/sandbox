@@ -2,7 +2,7 @@
 .DS_Store
 
 # Node modules
-/games/pixel-fortress/node_modules
+node_modules
 
 # Assets
 /games/pixel-fortress/assets/unused
