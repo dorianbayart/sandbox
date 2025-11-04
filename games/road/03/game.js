@@ -602,9 +602,9 @@ function updateTrafficSpawning() {
         lastTrafficSpawnY = spawnY;
     }
     
-    // CORRECTION: Remove traffic that's behind (higher Y value)
+    // Remove traffic based on playerCar position (camera follows player)
     for (let i = traffic.length - 1; i >= 0; i--) {
-        if (traffic[i].y > leadY + TRAFFIC_REMOVE_DISTANCE) {  // Changed condition
+        if (traffic[i].y > playerCar.y + TRAFFIC_REMOVE_DISTANCE) {
             traffic.splice(i, 1);
         }
     }
@@ -736,9 +736,9 @@ let generation = 1;
 let generationBestDistance = 0;
 
 // Traffic spawning configuration
-const TRAFFIC_SPAWN_DISTANCE = 400; // Spawn traffic this far ahead
-const TRAFFIC_REMOVE_DISTANCE = 200; // Remove traffic this far behind
-const TRAFFIC_SPAWN_INTERVAL = 200; // Min distance between spawns
+const TRAFFIC_SPAWN_DISTANCE = 1000; // Spawn traffic this far ahead
+const TRAFFIC_REMOVE_DISTANCE = 1800; // Remove traffic this far behind
+const TRAFFIC_SPAWN_INTERVAL = 400; // Min distance between spawns
 let lastTrafficSpawnY = 0;
 
 if (localStorage.getItem("bestBrain")) {
