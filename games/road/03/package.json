@@ -1,0 +1,15 @@
+{
+  "name": "neural-race",
+  "version": "1.0.0",
+  "description": "A car racing game with AI players learning via a custom neural engine.",
+  "main": "game.js",
+  "scripts": {
+    "start": "live-server"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "live-server": "*"
+  }
+}
