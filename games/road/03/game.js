@@ -304,13 +304,15 @@ class Car {
     }
 
     update(roadBorders, traffic, doDamageAssessment = true) {
-        //if (!this.damaged) {
+        if (!this.damaged || this.controlType === 'PLAYER') {
             this.move();
             this.polygon = this.createPolygon();
             if (doDamageAssessment) {
                 this.damaged = this.assessDamage(roadBorders, traffic);
             }
-        //}
+        } else {
+            this.polygon = this.createPolygon();
+        }
         if (this.sensor) {
             this.sensor.update(roadBorders, traffic);
             if (!this.damaged && doDamageAssessment && this.controlType === "AI") {
@@ -325,9 +327,9 @@ class Car {
                 this.controls.reverse = outputs[3];
 
                 // Add bias: AI should prefer moving forward
-                if (!this.controls.forward && !this.controls.reverse) {
-                    this.controls.forward = true;
-                }
+                // if (!this.controls.forward && !this.controls.reverse) {
+                //     this.controls.forward = true;
+                // }
             }
         }
     }
@@ -636,7 +638,7 @@ function resetGeneration() {
         
         if (i != 0) {
             // Vary mutation rate: some high, some low
-            const mutationRate = i < cars.length / 2 ? 0.1 : 0.3;
+            const mutationRate = 0.05 + (i / cars.length) * 0.25;
             NeuralNetwork.mutate(cars[i].brain, mutationRate);
         }
     }
@@ -686,9 +688,10 @@ function animate() {
     // Check if all AI cars are damaged OR if generation has stalled
     const allDamaged = cars.every(c => c.damaged);
     const bestStuck = bestCar.damaged || Math.abs(bestCar.speed) < 0.1;
+    const aliveCount = cars.filter(c => !c.damaged).length;
 
     // Reset after a timeout even if some cars are alive but stuck
-    if (allDamaged || (bestStuck && cars.filter(c => !c.damaged).length < 3)) {
+    if (allDamaged || aliveCount < 5 || (bestStuck && cars.filter(c => !c.damaged).length < 3)) {
         resetGeneration();
     }
 
