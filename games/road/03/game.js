@@ -365,9 +365,6 @@ class Car {
     }
 
     move() {
-        if (this.controlType === "PLAYER") {
-            console.log(`Player Car Controls in move(): Forward: ${this.controls.forward}, Left: ${this.controls.left}, Right: ${this.controls.right}, Reverse: ${this.controls.reverse}`);
-        }
         if (this.controls.forward) {
             this.speed += this.acceleration;
         }
