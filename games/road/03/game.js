@@ -287,9 +287,9 @@ class Car {
         this.controlType = controlType;
 
         this.speed = 0;
-        this.acceleration = 0.2;
+        this.acceleration = 0.15;
         this.maxSpeed = maxSpeed;
-        this.friction = 0.05;
+        this.friction = 0.075;
         this.angle = 0;
         this.damaged = false;
 
@@ -327,15 +327,15 @@ class Car {
                 // this.controls.reverse = outputs[3];
 
                 // For Tanh activation
-                this.controls.forward = outputs[0] > -0.1;
-                this.controls.left = outputs[1] > 0.2;
-                this.controls.right = outputs[2] > 0.2;
-                this.controls.reverse = outputs[3] > 0.3;
+                this.controls.forward = outputs[0] > -0.00001;
+                this.controls.left = outputs[1] > 0.0002;
+                this.controls.right = outputs[2] > 0.0002;
+                this.controls.reverse = outputs[3] > 0.000075;
                 
                 // Add bias: AI should prefer moving forward
-                // if (!this.controls.forward && !this.controls.reverse) {
-                //     this.controls.forward = true;
-                // }
+                if (!this.controls.forward && !this.controls.reverse) {
+                    this.controls.forward = true;
+                }
 
                 // Prevent simultaneous left/right conflicts
                 if (this.controls.left && this.controls.right) {
@@ -526,13 +526,13 @@ class Level {
         }
 
         for (let i = 0; i < level.biases.length; i++) {
-            // level.biases[i] = Math.random() * 2 - 1;
-            if (i === 0) {
-                // Bias positif pour la première sortie (forward)
-                level.biases[i] = Math.random() * 0.5;
-            } else {
-                level.biases[i] = Math.random() * 2 - 1;
-            }
+            level.biases[i] = Math.random() * 2 - 1;
+            // if (i === 0) {
+            //     // Bias positif pour la première sortie (forward)
+            //     level.biases[i] = Math.random() * 0.5;
+            // } else {
+            //     level.biases[i] = Math.random() * 2 - 1;
+            // }
         }
     }
 
@@ -650,8 +650,8 @@ function updateTrafficSpawning() {
 function resetGeneration() {
     // Find best car: furthest distance + bonus for being alive
     bestCar = cars.reduce((best, current) => {
-        const bestScore = -best.y + (best.damaged ? 0 : 100);
-        const currentScore = -current.y + (current.damaged ? 0 : 100);
+        const bestScore = -best.y + (best.damaged ? 0 : 200);
+        const currentScore = -current.y + (current.damaged ? 0 : 200);
         return currentScore > bestScore ? current : best;
     });
     
@@ -673,7 +673,7 @@ function resetGeneration() {
         
         if (i != 0) {
             // Vary mutation rate: some high, some low
-            const mutationRate = 0.05 + (i / cars.length) * 0.25;
+            const mutationRate = 0.05 + (i / cars.length) * 0.4;
             NeuralNetwork.mutate(cars[i].brain, mutationRate);
         }
     }
@@ -719,7 +719,7 @@ function animate() {
 
     // Cars are damaged if too far behind
     for (let i = 0; i < cars.length; i++) {
-        if (!cars[i].damaged && cars[i].y - bestCar.y > MAX_LAG_DISTANCE) {
+        if (!cars[i].damaged && cars[i].y - bestCar.y > MAX_LAG_DISTANCE || Math.abs(bestCar.speed) < 0.05) {
             cars[i].damaged = true;
         }
     }
@@ -773,7 +773,7 @@ const ctx = canvas.getContext("2d");
 
 const road = new Road(canvas.width / 2, canvas.width * 0.9);
 
-const N = 25; // Number of AI cars
+const N = 75; // Number of AI cars
 const playerCar = new Car(road.getLaneCenter(1), canvas.height - 100, 30, 50, "PLAYER");
 const cars = generateCars(N);
 let bestCar = cars[0];
