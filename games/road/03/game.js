@@ -296,7 +296,7 @@ class Car {
         if (controlType != "DUMMY") {
             this.sensor = new Sensor(this);
             this.brain = new NeuralNetwork(
-                [this.sensor.rayCount, 8, 6, 4]
+                [this.sensor.rayCount, 6, 6, 4]
             );
         }
         this.controls = new Controls(controlType);
@@ -584,26 +584,27 @@ function generateCars(N) {
 
 function generateTrafficPattern() {
     const patterns = [
-        // Single lane blocked
-        [{ lane: 0, offset: 0 }],
-        [{ lane: 1, offset: 0 }],
-        [{ lane: 2, offset: 0 }],
+        // Une voie libre - facile
+        [{ lane: 0, offset: 0 }, { lane: 1, offset: 0 }], // droite libre
+        [{ lane: 1, offset: 0 }, { lane: 2, offset: 0 }], // gauche libre
+        [{ lane: 0, offset: 0 }, { lane: 2, offset: 0 }], // milieu libre
         
-        // Two lanes blocked
-        [{ lane: 0, offset: 0 }, { lane: 1, offset: 0 }],
-        [{ lane: 1, offset: 0 }, { lane: 2, offset: 0 }],
-        [{ lane: 0, offset: 0 }, { lane: 2, offset: 0 }],
+        // Chicanes - moyen
+        [{ lane: 0, offset: 0 }, { lane: 2, offset: -120 }], // slalom droite
+        [{ lane: 2, offset: 0 }, { lane: 0, offset: -120 }], // slalom gauche
+        [{ lane: 1, offset: 0 }, { lane: 0, offset: -100 }, { lane: 2, offset: -200 }], // S
         
-        // Diagonal patterns
-        [{ lane: 0, offset: 0 }, { lane: 1, offset: -100 }],
-        [{ lane: 1, offset: 0 }, { lane: 2, offset: -100 }],
-        [{ lane: 2, offset: 0 }, { lane: 1, offset: -100 }],
+        // Passages étroits - difficile
+        [{ lane: 0, offset: 0 }, { lane: 1, offset: -60 }, { lane: 2, offset: 0 }], // passage central
+        [{ lane: 0, offset: -60 }, { lane: 1, offset: 0 }, { lane: 2, offset: -60 }], // passage central inversé
         
-        // Zigzag
-        [{ lane: 0, offset: 0 }, { lane: 2, offset: -150 }, { lane: 1, offset: -300 }],
+        // Dense mais passage en diagonale - très difficile
+        [{ lane: 0, offset: 0 }, { lane: 1, offset: -80 }, { lane: 2, offset: -160 }],
+        [{ lane: 2, offset: 0 }, { lane: 1, offset: -80 }, { lane: 0, offset: -160 }],
         
-        // All lanes with gap
-        [{ lane: 0, offset: 0 }, { lane: 1, offset: -80 }, { lane: 2, offset: -160 }]
+        // Murs décalés avec gap - expert
+        [{ lane: 0, offset: 0 }, { lane: 1, offset: 0 }, { lane: 2, offset: -140 }],
+        [{ lane: 0, offset: -140 }, { lane: 1, offset: 0 }, { lane: 2, offset: 0 }]
     ];
     
     return patterns[Math.floor(Math.random() * patterns.length)];
@@ -650,8 +651,8 @@ function updateTrafficSpawning() {
 function resetGeneration() {
     // Find best car: furthest distance + bonus for being alive
     bestCar = cars.reduce((best, current) => {
-        const bestScore = -best.y + (best.damaged ? 0 : 200);
-        const currentScore = -current.y + (current.damaged ? 0 : 200);
+        const bestScore = -best.y + (best.damaged ? 0 : 300) + (best.damaged ? 0 : Math.abs(best.speed) * 50);
+        const currentScore = -current.y + (current.damaged ? 0 : 300) + (current.damaged ? 0 : Math.abs(current.speed) * 50);
         return currentScore > bestScore ? current : best;
     });
     
@@ -671,10 +672,16 @@ function resetGeneration() {
         cars[i].speed = 0;
         cars[i].angle = 0;
         
-        if (i != 0) {
-            // Vary mutation rate: some high, some low
-            const mutationRate = 0.05 + (i / cars.length) * 0.4;
-            NeuralNetwork.mutate(cars[i].brain, mutationRate);
+        if (i == 0) {
+            // Élite: pas de mutation
+        } else if (i < 3) {
+            NeuralNetwork.mutate(cars[i].brain, 0.02);
+        } else if (i < 10) {
+            NeuralNetwork.mutate(cars[i].brain, 0.1);
+        } else if (i < 18) {
+            NeuralNetwork.mutate(cars[i].brain, 0.25);
+        } else {
+            NeuralNetwork.mutate(cars[i].brain, 0.5); // Forte exploration
         }
     }
     
@@ -733,7 +740,7 @@ function animate() {
     const aliveCount = cars.filter(c => !c.damaged).length;
 
     // Reset after a timeout even if some cars are alive but stuck
-    if (allDamaged || aliveCount < 1 || (bestStuck && cars.filter(c => !c.damaged).length < 3)) {
+    if (allDamaged || (aliveCount < 2 && bestStuck)) {
         resetGeneration();
     }
 
@@ -773,7 +780,7 @@ const ctx = canvas.getContext("2d");
 
 const road = new Road(canvas.width / 2, canvas.width * 0.9);
 
-const N = 75; // Number of AI cars
+const N = 25; // Number of AI cars
 const playerCar = new Car(road.getLaneCenter(1), canvas.height - 100, 30, 50, "PLAYER");
 const cars = generateCars(N);
 let bestCar = cars[0];
@@ -783,7 +790,7 @@ let generationBestDistance = 0;
 // Traffic spawning configuration
 const TRAFFIC_SPAWN_DISTANCE = 1000; // Spawn traffic this far ahead
 const TRAFFIC_REMOVE_DISTANCE = 1800; // Remove traffic this far behind
-const TRAFFIC_SPAWN_INTERVAL = 350; // Min distance between spawns
+const TRAFFIC_SPAWN_INTERVAL = 320; // Min distance between spawns
 const MAX_LAG_DISTANCE = 600; // Max distance before behing damaged
 let lastTrafficSpawnY = 0;
 
@@ -793,7 +800,13 @@ if (localStorage.getItem("bestBrain")) {
             localStorage.getItem("bestBrain")
         );
         if (i != 0) {
-            NeuralNetwork.mutate(cars[i].brain, 0.1);
+            if (i < 3) {
+                NeuralNetwork.mutate(cars[i].brain, 0.02); // Mutation légère
+            } else if (i < 10) {
+                NeuralNetwork.mutate(cars[i].brain, 0.1);  // Mutation moyenne
+            } else {
+                NeuralNetwork.mutate(cars[i].brain, 0.3);  // Exploration
+            }
         }
     }
     
