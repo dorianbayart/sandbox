@@ -21,6 +21,11 @@ h2 {
   margin-bottom: 1rem;
 }
 
+hr {
+  width: 120%;
+  transform: translateX(-10%);
+}
+
 main {
   flex-grow: 1;
 }
@@ -60,18 +65,20 @@ section .flex {
 
 input[type="file"],
 textarea {
-    width: calc(100% - 20px);
-    min-height: 48px;
+    width: 100%;
+    min-height: 64px;
     padding: 10px;
-    margin-bottom: 1rem;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 1rem;
     box-sizing: border-box;
+    display: flex;
+    align-content: center;
+    justify-content: center;
 }
 
 textarea {
-    
+    font-size: .8rem;
     resize: vertical;
 }
 
@@ -94,6 +101,14 @@ textarea {
     max-height: 150px;
     height: auto;
     display: block;
+}
+
+.image-size, .svg-size {
+    display: block;
+    text-align: center;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #555;
 }
 
 button {
@@ -119,16 +134,19 @@ button:disabled {
     cursor: not-allowed;
 }
 
+.output-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 1rem;
+}
+
 .output-section button {
     width: auto;
     display: inline-block;
-    margin-right: 10px;
+    margin: 0;
     padding: 10px 15px;
     font-size: 1rem;
-}
-
-.output-section button:last-child {
-    margin-right: 0;
 }
 
 .output-section textarea {

@@ -24,18 +24,25 @@
           <span>OR</span>
           <textarea id="base64Input" placeholder="Paste base64 image data here..."></textarea>
         </div>
-        
         <div class="image-preview" id="inputImagePreview"></div>
+        <span id="inputImageSize" class="image-size"></span>
       </div>
 
-      <button id="convertButton" class="button-primary">Convert to SVG</button>
+    </section>
+
+    <hr>
+    
+    <section class="centered">
 
       <div class="output-section">
         <h2>Output SVG</h2>
         <textarea id="svgOutput" readonly></textarea>
         <div class="svg-preview" id="outputSvgPreview"></div>
-        <button id="copySvgButton">Copy SVG</button>
-        <button id="downloadSvgButton">Download SVG</button>
+        <span id="outputSvgSize" class="svg-size"></span>
+        <div class="output-buttons">
+            <button id="copySvgButton">Copy SVG</button>
+            <button id="downloadSvgButton">Download SVG</button>
+        </div>
       </div>
 
     </section>
@@ -47,21 +54,54 @@
     const imageUpload = document.getElementById('imageUpload');
     const base64Input = document.getElementById('base64Input');
     const inputImagePreview = document.getElementById('inputImagePreview');
-    const convertButton = document.getElementById('convertButton');
+    const inputImageSize = document.getElementById('inputImageSize');
     const svgOutput = document.getElementById('svgOutput');
     const outputSvgPreview = document.getElementById('outputSvgPreview');
+    const outputSvgSize = document.getElementById('outputSvgSize');
     const copySvgButton = document.getElementById('copySvgButton');
     const downloadSvgButton = document.getElementById('downloadSvgButton');
 
     let currentImageBase64 = '';
 
-    function displayImagePreview(base64Data) {
+    async function processImage(base64Data) {
       if (base64Data) {
         inputImagePreview.innerHTML = `<img src="${base64Data}" alt="Input Image Preview">`;
         currentImageBase64 = base64Data;
+
+        const img = new Image();
+        img.onload = async () => {
+          inputImageSize.textContent = `Original Size: ${img.width}x${img.height} pixels`;
+          try {
+            const svgResult = await convertToPixelPerfectSVG(base64Data);
+            svgOutput.value = svgResult;
+            outputSvgPreview.innerHTML = svgResult;
+            const svgBlob = new Blob([svgResult], { type: 'image/svg+xml' });
+            outputSvgSize.textContent = `SVG Size: ${svgBlob.size} bytes`;
+          } catch (error) {
+            console.error('SVG conversion failed:', error);
+            alert('Failed to convert image to SVG. Please check the console for details.');
+            svgOutput.value = '';
+            outputSvgPreview.innerHTML = '';
+            outputSvgSize.textContent = '';
+          }
+        };
+        img.onerror = () => {
+            inputImageSize.textContent = 'Invalid image data';
+            inputImagePreview.innerHTML = '';
+            currentImageBase64 = '';
+            svgOutput.value = '';
+            outputSvgPreview.innerHTML = '';
+            outputSvgSize.textContent = '';
+        };
+        img.src = base64Data;
+
       } else {
         inputImagePreview.innerHTML = '';
+        inputImageSize.textContent = '';
         currentImageBase64 = '';
+        svgOutput.value = '';
+        outputSvgPreview.innerHTML = '';
+        outputSvgSize.textContent = '';
       }
     }
 
@@ -70,30 +110,19 @@
       if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          displayImagePreview(e.target.result);
           base64Input.value = e.target.result; // Sync base64 input
+          processImage(e.target.result);
         };
         reader.readAsDataURL(file);
       } else {
-        displayImagePreview('');
         base64Input.value = '';
+        processImage('');
       }
     });
 
     base64Input.addEventListener('input', (event) => {
-      displayImagePreview(event.target.value);
+      processImage(event.target.value);
       imageUpload.value = ''; // Clear file input if base64 is manually entered
-    });
-
-    convertButton.addEventListener('click', () => {
-      if (currentImageBase64) {
-        // Placeholder for actual SVG conversion logic
-        const svgResult = convertToPixelPerfectSVG(currentImageBase64);
-        svgOutput.value = svgResult;
-        outputSvgPreview.innerHTML = svgResult;
-      } else {
-        alert('Please upload an image or paste base64 data.');
-      }
     });
 
     copySvgButton.addEventListener('click', () => {
@@ -157,26 +186,6 @@ ${svgRects.join("\n")}
         img.src = base64Image;
       });
     }
-
-    convertButton.addEventListener('click', async () => {
-      if (currentImageBase64) {
-        convertButton.disabled = true;
-        convertButton.textContent = 'Converting...';
-        try {
-          const svgResult = await convertToPixelPerfectSVG(currentImageBase64);
-          svgOutput.value = svgResult;
-          outputSvgPreview.innerHTML = svgResult;
-        } catch (error) {
-          console.error('SVG conversion failed:', error);
-          alert('Failed to convert image to SVG. Please check the console for details.');
-        } finally {
-          convertButton.disabled = false;
-          convertButton.textContent = 'Convert to SVG';
-        }
-      } else {
-        alert('Please upload an image or paste base64 data.');
-      }
-    });
   </script>
 
 
