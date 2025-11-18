@@ -11,7 +11,7 @@
 
 <body>
   <header>
-    <h1 class="cursive">Pixel Perfect Converter</h1>
+    <h1 class="cursive">Pixel Perfect: Picture to SVG</h1>
     <subtitle>Online Pixel Art to SVG Converter: Transform Images into Scalable Vector Graphics</subtitle>
   </header>
 
@@ -32,24 +32,6 @@
     </section>
 
     <hr>
-    
-    <section class="centered" style="display:none;">
-
-      <div class="output-section">
-        <h2>Pixel Perfect SVG</h2>
-        <div id="svgLoader" class="loader"></div>
-        <textarea id="svgOutput" readonly></textarea>
-        <div class="svg-preview" id="outputSvgPreview">Preview</div>
-        <span id="outputSvgSize" class="svg-size"></span>
-        <div class="output-buttons">
-            <button id="copySvgButton">Copy SVG</button>
-            <button id="downloadSvgButton">Download SVG</button>
-        </div>
-      </div>
-
-    </section>
-
-    <hr style="display:none;">
 
     <section class="centered">
 
@@ -75,12 +57,6 @@
     const base64Input = document.getElementById('base64Input');
     const inputImagePreview = document.getElementById('inputImagePreview');
     const inputImageSize = document.getElementById('inputImageSize');
-    const svgOutput = document.getElementById('svgOutput');
-    const outputSvgPreview = document.getElementById('outputSvgPreview');
-    const outputSvgSize = document.getElementById('outputSvgSize');
-    const copySvgButton = document.getElementById('copySvgButton');
-    const downloadSvgButton = document.getElementById('downloadSvgButton');
-    const svgLoader = document.getElementById('svgLoader');
 
     const optimizedSvgOutput = document.getElementById('optimizedSvgOutput');
     const optimizedOutputSvgPreview = document.getElementById('optimizedOutputSvgPreview');
@@ -96,6 +72,11 @@
         inputImagePreview.innerHTML = `<img src="${base64Data}" alt="Input Image Preview">`;
         currentImageBase64 = base64Data;
 
+        optimizedSvgLoader.style.display = 'block';
+        optimizedSvgOutput.value = '';
+        optimizedOutputSvgPreview.innerHTML = '';
+        optimizedOutputSvgSize.textContent = '';
+
         const img = new Image();
         img.onload = async () => {
           inputImageSize.textContent = `Original Size: ${img.width}x${img.height} pixels`;
@@ -110,44 +91,41 @@
             inputImageSize.textContent += ' (Size unknown)';
           }
 
-          // Show loader and clear previous SVG output
-          svgLoader.style.display = 'block';
-          svgOutput.value = '';
-          outputSvgPreview.innerHTML = '';
-          outputSvgSize.textContent = '';
-          let svgBlob;
+          // // Show loader and clear previous SVG output
+          // svgLoader.style.display = 'block';
+          // svgOutput.value = '';
+          // outputSvgPreview.innerHTML = '';
+          // outputSvgSize.textContent = '';
+          // let svgBlob;
 
-          try {
-            const svgResult = await convertToPixelPerfectSVG(base64Data);
-            svgOutput.value = svgResult;
-            outputSvgPreview.innerHTML = svgResult;
-            svgBlob = new Blob([svgResult], { type: 'image/svg+xml' });
-            outputSvgSize.textContent = `SVG Size: ${formatBytes(svgBlob.size)}`;
-          } catch (error) {
-            console.error('SVG conversion failed:', error);
-            alert('Failed to convert image to SVG. Please check the console for details.');
-            svgOutput.value = '';
-            outputSvgPreview.innerHTML = '';
-            outputSvgSize.textContent = '';
-          } finally {
-            svgLoader.style.display = 'none'; // Hide loader regardless of success or failure
-          }
+          // try {
+          //   const svgResult = await convertToPixelPerfectSVG(base64Data);
+          //   svgOutput.value = svgResult;
+          //   outputSvgPreview.innerHTML = svgResult;
+          //   svgBlob = new Blob([svgResult], { type: 'image/svg+xml' });
+          //   outputSvgSize.textContent = `SVG Size: ${formatBytes(svgBlob.size)}`;
+          // } catch (error) {
+          //   console.error('SVG conversion failed:', error);
+          //   alert('Failed to convert image to SVG. Please check the console for details.');
+          //   svgOutput.value = '';
+          //   outputSvgPreview.innerHTML = '';
+          //   outputSvgSize.textContent = '';
+          // } finally {
+          //   svgLoader.style.display = 'none'; // Hide loader regardless of success or failure
+          // }
 
           // Process for Optimized SVG
-          optimizedSvgLoader.style.display = 'block';
-          optimizedSvgOutput.value = '';
-          optimizedOutputSvgPreview.innerHTML = '';
-          optimizedOutputSvgSize.textContent = '';
+          
 
           try {
             const optimizedSvgResult = await convertToOptimizedSVG(base64Data);
             optimizedSvgOutput.value = optimizedSvgResult;
             optimizedOutputSvgPreview.innerHTML = optimizedSvgResult;
             const optimizedSvgBlob = new Blob([optimizedSvgResult], { type: 'image/svg+xml' });
-            const originalSvgSize = svgBlob.size;
+            // const originalSvgSize = svgBlob.size;
             const optimizedSvgSize = optimizedSvgBlob.size;
-            const percentage = ((originalSvgSize - optimizedSvgSize) / originalSvgSize) * 100;
-            optimizedOutputSvgSize.textContent = `Optimized SVG Size: ${formatBytes(optimizedSvgSize)} (${percentage.toFixed(2)}% smaller than non optimized SVG)`;
+            // const percentage = ((originalSvgSize - optimizedSvgSize) / originalSvgSize) * 100;
+            optimizedOutputSvgSize.textContent = `Optimized SVG Size: ${formatBytes(optimizedSvgSize)}`;
           } catch (error) {
             console.error('Optimized SVG conversion failed:', error);
             alert('Failed to convert image to Optimized SVG. Please check the console for details.');
@@ -198,29 +176,6 @@
     base64Input.addEventListener('input', (event) => {
       processImage(event.target.value);
       imageUpload.value = ''; // Clear file input if base64 is manually entered
-    });
-
-    copySvgButton.addEventListener('click', () => {
-      svgOutput.select();
-      document.execCommand('copy');
-      alert('SVG copied to clipboard!');
-    });
-
-    downloadSvgButton.addEventListener('click', () => {
-      const svgContent = svgOutput.value;
-      if (svgContent) {
-        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'pixel-perfect.svg';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } else {
-        alert('No SVG to download.');
-      }
     });
 
     copyOptimizedSvgButton.addEventListener('click', () => {
@@ -392,9 +347,7 @@
           }
 
           const sortedColors = Array.from(colorCounts.entries()).sort((a, b) => b[1] - a[1]);
-          console.log(sortedColors)
           const topColors = sortedColors.filter(([a, b]) => b > 8).map(entry => entry[0]);
-          console.log(topColors)
 
           let finalSvgContent;
           if (topColors.length === 1) {
@@ -410,7 +363,7 @@ ${optimizedElements.join("")}
             const colorMap = new Map();
             if (topColors.length > 0) {
               styleDefs = '<defs><style>';
-              styleDefs += 'svg {'; // Define variables on the svg element
+              styleDefs += 'svg{'; // Define variables on the svg element
               topColors.forEach((color, index) => {
                 const varName = `--c${index + 1}`;
                 styleDefs += `${varName}:${color};`;
