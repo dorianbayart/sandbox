@@ -1,31 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Pixel Perfect Converter</title>
 
-  <link rel="stylesheet" href="knacss.css">
-  <link rel="stylesheet" href="common.css">
-
 </head>
-<body>
 
+<body>
   <header>
     <h1 class="cursive">Pixel Perfect Converter</h1>
   </header>
 
   <main>
     <section class="centered">
-      <form autocomplete="off">
+
+      <div class="input-section">
+        <h2>Input Image</h2>
+        <div class="flex">
+          <input type="file" id="imageUpload" accept="image/*">
+          <span>OR</span>
+          <textarea id="base64Input" placeholder="Paste base64 image data here..."></textarea>
+        </div>
         
-      </form>
+        <div class="image-preview" id="inputImagePreview"></div>
+      </div>
+
+      <button id="convertButton" class="button-primary">Convert to SVG</button>
+
+      <div class="output-section">
+        <h2>Output SVG</h2>
+        <textarea id="svgOutput" readonly></textarea>
+        <div class="svg-preview" id="outputSvgPreview"></div>
+        <button id="copySvgButton">Copy SVG</button>
+        <button id="downloadSvgButton">Download SVG</button>
+      </div>
+
     </section>
   </main>
 
+
+  <script>
+    // JavaScript will go here
+    const imageUpload = document.getElementById('imageUpload');
+    const base64Input = document.getElementById('base64Input');
+    const inputImagePreview = document.getElementById('inputImagePreview');
+    const convertButton = document.getElementById('convertButton');
+    const svgOutput = document.getElementById('svgOutput');
+    const outputSvgPreview = document.getElementById('outputSvgPreview');
+    const copySvgButton = document.getElementById('copySvgButton');
+    const downloadSvgButton = document.getElementById('downloadSvgButton');
+
+    let currentImageBase64 = '';
+
+    function displayImagePreview(base64Data) {
+      if (base64Data) {
+        inputImagePreview.innerHTML = `<img src="${base64Data}" alt="Input Image Preview">`;
+        currentImageBase64 = base64Data;
+      } else {
+        inputImagePreview.innerHTML = '';
+        currentImageBase64 = '';
+      }
+    }
+
+    imageUpload.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          displayImagePreview(e.target.result);
+          base64Input.value = e.target.result; // Sync base64 input
+        };
+        reader.readAsDataURL(file);
+      } else {
+        displayImagePreview('');
+        base64Input.value = '';
+      }
+    });
+
+    base64Input.addEventListener('input', (event) => {
+      displayImagePreview(event.target.value);
+      imageUpload.value = ''; // Clear file input if base64 is manually entered
+    });
+
+    convertButton.addEventListener('click', () => {
+      if (currentImageBase64) {
+        // Placeholder for actual SVG conversion logic
+        const svgResult = convertToPixelPerfectSVG(currentImageBase64);
+        svgOutput.value = svgResult;
+        outputSvgPreview.innerHTML = svgResult;
+      } else {
+        alert('Please upload an image or paste base64 data.');
+      }
+    });
+
+    copySvgButton.addEventListener('click', () => {
+      svgOutput.select();
+      document.execCommand('copy');
+      alert('SVG copied to clipboard!');
+    });
+
+    downloadSvgButton.addEventListener('click', () => {
+      const svgContent = svgOutput.value;
+      if (svgContent) {
+        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'pixel-perfect.svg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        alert('No SVG to download.');
+      }
+    });
+
+    function convertToPixelPerfectSVG(base64Image) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          const imageData = ctx.getImageData(0, 0, img.width, img.height);
+          const data = imageData.data;
+
+          let svgRects = [];
+          for (let y = 0; y < img.height; y++) {
+            for (let x = 0; x < img.width; x++) {
+              const index = (y * img.width + x) * 4;
+              const alpha = data[index + 3]; // Alpha channel
+
+              if (alpha > 0) { // Only draw if not fully transparent
+                const r = data[index];
+                const g = data[index + 1];
+                const b = data[index + 2];
+                const color = `rgb(${r},${g},${b})`;
+                svgRects.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`);
+              }
+            }
+          }
+
+          const svgContent = `<svg width="${img.width}" height="${img.height}" viewBox="0 0 ${img.width} ${img.height}" xmlns="http://www.w3.org/2000/svg">
+${svgRects.join("\n")}
+</svg>`;
+          resolve(svgContent);
+        };
+        img.src = base64Image;
+      });
+    }
+
+    convertButton.addEventListener('click', async () => {
+      if (currentImageBase64) {
+        convertButton.disabled = true;
+        convertButton.textContent = 'Converting...';
+        try {
+          const svgResult = await convertToPixelPerfectSVG(currentImageBase64);
+          svgOutput.value = svgResult;
+          outputSvgPreview.innerHTML = svgResult;
+        } catch (error) {
+          console.error('SVG conversion failed:', error);
+          alert('Failed to convert image to SVG. Please check the console for details.');
+        } finally {
+          convertButton.disabled = false;
+          convertButton.textContent = 'Convert to SVG';
+        }
+      } else {
+        alert('Please upload an image or paste base64 data.');
+      }
+    });
+  </script>
+
+
+
+
   <footer>
-    <div id="footer">&copy; 2000 <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a></div>
+    <div id="footer">&copy; 2000 <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a>
+    </div>
   </footer>
 
   <script>
@@ -34,4 +193,7 @@
   </script>
 
 </body>
+
+<link rel="stylesheet" href="common.css">
+
 </html>
