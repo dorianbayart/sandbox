@@ -86,6 +86,7 @@ textarea {
 
 .image-preview,
 .svg-preview {
+    color: #ccc;
     border: 1px dashed #ccc;
     min-height: 64px;
     display: flex;
