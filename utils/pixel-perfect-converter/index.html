@@ -71,12 +71,23 @@
         const img = new Image();
         img.onload = async () => {
           inputImageSize.textContent = `Original Size: ${img.width}x${img.height} pixels`;
+
+          // Calculate and display input image size in bytes
+          try {
+            const response = await fetch(base64Data);
+            const blob = await response.blob();
+            inputImageSize.textContent += ` (${formatBytes(blob.size)})`;
+          } catch (error) {
+            console.error('Failed to fetch image blob for size calculation:', error);
+            inputImageSize.textContent += ' (Size unknown)';
+          }
+
           try {
             const svgResult = await convertToPixelPerfectSVG(base64Data);
             svgOutput.value = svgResult;
             outputSvgPreview.innerHTML = svgResult;
             const svgBlob = new Blob([svgResult], { type: 'image/svg+xml' });
-            outputSvgSize.textContent = `SVG Size: ${svgBlob.size} bytes`;
+            outputSvgSize.textContent = `SVG Size: ${formatBytes(svgBlob.size)}`;
           } catch (error) {
             console.error('SVG conversion failed:', error);
             alert('Failed to convert image to SVG. Please check the console for details.');
@@ -147,6 +158,19 @@
         alert('No SVG to download.');
       }
     });
+
+    // Helper function to format bytes into human-readable sizes
+    function formatBytes(bytes, decimals = 2) {
+      if (bytes === 0) return '0 Bytes';
+
+      const k = 1024;
+      const dm = decimals < 0 ? 0 : decimals;
+      const sizes = ['Bytes', 'KB', 'MB'];
+
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
 
     function convertToPixelPerfectSVG(base64Image) {
       return new Promise((resolve) => {
