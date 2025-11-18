@@ -12,6 +12,7 @@
 <body>
   <header>
     <h1 class="cursive">Pixel Perfect Converter</h1>
+    <subtitle>Online Pixel Art to SVG Converter: Transform Images into Scalable Vector Graphics</subtitle>
   </header>
 
   <main>
@@ -47,6 +48,24 @@
       </div>
 
     </section>
+
+    <hr>
+
+    <section class="centered">
+
+      <div class="output-section">
+        <h2>Optimized Output SVG</h2>
+        <div id="optimizedSvgLoader" class="loader"></div>
+        <textarea id="optimizedSvgOutput" readonly></textarea>
+        <div class="svg-preview" id="optimizedOutputSvgPreview">Preview</div>
+        <span id="optimizedOutputSvgSize" class="svg-size"></span>
+        <div class="output-buttons">
+            <button id="copyOptimizedSvgButton">Copy Optimized SVG</button>
+            <button id="downloadOptimizedSvgButton">Download Optimized SVG</button>
+        </div>
+      </div>
+
+    </section>
   </main>
 
 
@@ -62,6 +81,13 @@
     const copySvgButton = document.getElementById('copySvgButton');
     const downloadSvgButton = document.getElementById('downloadSvgButton');
     const svgLoader = document.getElementById('svgLoader');
+
+    const optimizedSvgOutput = document.getElementById('optimizedSvgOutput');
+    const optimizedOutputSvgPreview = document.getElementById('optimizedOutputSvgPreview');
+    const optimizedOutputSvgSize = document.getElementById('optimizedOutputSvgSize');
+    const copyOptimizedSvgButton = document.getElementById('copyOptimizedSvgButton');
+    const downloadOptimizedSvgButton = document.getElementById('downloadOptimizedSvgButton');
+    const optimizedSvgLoader = document.getElementById('optimizedSvgLoader');
 
     let currentImageBase64 = '';
 
@@ -89,12 +115,13 @@
           svgOutput.value = '';
           outputSvgPreview.innerHTML = '';
           outputSvgSize.textContent = '';
+          let svgBlob;
 
           try {
             const svgResult = await convertToPixelPerfectSVG(base64Data);
             svgOutput.value = svgResult;
             outputSvgPreview.innerHTML = svgResult;
-            const svgBlob = new Blob([svgResult], { type: 'image/svg+xml' });
+            svgBlob = new Blob([svgResult], { type: 'image/svg+xml' });
             outputSvgSize.textContent = `SVG Size: ${formatBytes(svgBlob.size)}`;
           } catch (error) {
             console.error('SVG conversion failed:', error);
@@ -104,6 +131,31 @@
             outputSvgSize.textContent = '';
           } finally {
             svgLoader.style.display = 'none'; // Hide loader regardless of success or failure
+          }
+
+          // Process for Optimized SVG
+          optimizedSvgLoader.style.display = 'block';
+          optimizedSvgOutput.value = '';
+          optimizedOutputSvgPreview.innerHTML = '';
+          optimizedOutputSvgSize.textContent = '';
+
+          try {
+            const optimizedSvgResult = await convertToOptimizedSVG(base64Data);
+            optimizedSvgOutput.value = optimizedSvgResult;
+            optimizedOutputSvgPreview.innerHTML = optimizedSvgResult;
+            const optimizedSvgBlob = new Blob([optimizedSvgResult], { type: 'image/svg+xml' });
+            const originalSvgSize = svgBlob.size;
+            const optimizedSvgSize = optimizedSvgBlob.size;
+            const percentage = ((originalSvgSize - optimizedSvgSize) / originalSvgSize) * 100;
+            optimizedOutputSvgSize.textContent = `Optimized SVG Size: ${formatBytes(optimizedSvgSize)} (${percentage.toFixed(2)}% smaller)`;
+          } catch (error) {
+            console.error('Optimized SVG conversion failed:', error);
+            alert('Failed to convert image to Optimized SVG. Please check the console for details.');
+            optimizedSvgOutput.value = '';
+            optimizedOutputSvgPreview.innerHTML = '';
+            optimizedOutputSvgSize.textContent = '';
+          } finally {
+            optimizedSvgLoader.style.display = 'none';
           }
         };
         img.onerror = () => {
@@ -171,6 +223,29 @@
       }
     });
 
+    copyOptimizedSvgButton.addEventListener('click', () => {
+      optimizedSvgOutput.select();
+      document.execCommand('copy');
+      alert('Optimized SVG copied to clipboard!');
+    });
+
+    downloadOptimizedSvgButton.addEventListener('click', () => {
+      const svgContent = optimizedSvgOutput.value;
+      if (svgContent) {
+        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'pixel-perfect-optimized.svg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        alert('No Optimized SVG to download.');
+      }
+    });
+
     // Helper function to format bytes into human-readable sizes
     function formatBytes(bytes, decimals = 2) {
       if (bytes === 0) return '0 Bytes';
@@ -216,6 +291,66 @@
 
           const svgContent = `<svg width="${img.width}" height="${img.height}" viewBox="0 0 ${img.width} ${img.height}" xmlns="http://www.w3.org/2000/svg">
 ${svgRects.join("\n")}
+</svg>`;
+          resolve(svgContent);
+        };
+        img.src = base64Image;
+      });
+    }
+
+    function convertToOptimizedSVG(base64Image) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          const imageData = ctx.getImageData(0, 0, img.width, img.height);
+          const data = imageData.data;
+
+          let svgLines = [];
+          for (let y = 0; y < img.height; y++) {
+            for (let x = 0; x < img.width; x++) {
+              const index = (y * img.width + x) * 4;
+              const alpha = data[index + 3];
+
+              if (alpha > 0) {
+                const r = data[index];
+                const g = data[index + 1];
+                const b = data[index + 2];
+                const color = `rgb(${r},${g},${b})`;
+
+                let lineLength = 0;
+                // Check for contiguous pixels of the same color in the current row
+                while (x + lineLength < img.width) {
+                  const nextIndex = (y * img.width + (x + lineLength)) * 4;
+                  const nextAlpha = data[nextIndex + 3];
+                  const nextR = data[nextIndex];
+                  const nextG = data[nextIndex + 1];
+                  const nextB = data[nextIndex + 2];
+
+                  if (nextAlpha > 0 && nextR === r && nextG === g && nextB === b) {
+                    lineLength++;
+                  } else {
+                    break;
+                  }
+                }
+
+                // Add a line segment
+                svgLines.push(`<line x1="${x}" y1="${y}" x2="${x + lineLength}" y2="${y}" stroke="${color}"/>`);
+
+                // Skip pixels that have already been covered by the line
+                x += lineLength - 1;
+              }
+            }
+          }
+
+          const svgContent = `<svg width="${img.width}" height="${img.height}" viewBox="0 0 ${img.width} ${img.height}" xmlns="http://www.w3.org/2000/svg" stroke-width="1" shape-rendering="crispEdges">
+${svgLines.join("\n")}
 </svg>`;
           resolve(svgContent);
         };
