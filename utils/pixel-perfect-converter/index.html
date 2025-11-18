@@ -24,7 +24,7 @@
           <span>OR</span>
           <textarea id="base64Input" placeholder="Paste base64 image data here..."></textarea>
         </div>
-        <div class="image-preview" id="inputImagePreview"></div>
+        <div class="image-preview" id="inputImagePreview">Preview</div>
         <span id="inputImageSize" class="image-size"></span>
       </div>
 
@@ -36,8 +36,9 @@
 
       <div class="output-section">
         <h2>Output SVG</h2>
+        <div id="svgLoader" class="loader"></div>
         <textarea id="svgOutput" readonly></textarea>
-        <div class="svg-preview" id="outputSvgPreview"></div>
+        <div class="svg-preview" id="outputSvgPreview">Preview</div>
         <span id="outputSvgSize" class="svg-size"></span>
         <div class="output-buttons">
             <button id="copySvgButton">Copy SVG</button>
@@ -60,6 +61,7 @@
     const outputSvgSize = document.getElementById('outputSvgSize');
     const copySvgButton = document.getElementById('copySvgButton');
     const downloadSvgButton = document.getElementById('downloadSvgButton');
+    const svgLoader = document.getElementById('svgLoader');
 
     let currentImageBase64 = '';
 
@@ -82,6 +84,12 @@
             inputImageSize.textContent += ' (Size unknown)';
           }
 
+          // Show loader and clear previous SVG output
+          svgLoader.style.display = 'block';
+          svgOutput.value = '';
+          outputSvgPreview.innerHTML = '';
+          outputSvgSize.textContent = '';
+
           try {
             const svgResult = await convertToPixelPerfectSVG(base64Data);
             svgOutput.value = svgResult;
@@ -94,6 +102,8 @@
             svgOutput.value = '';
             outputSvgPreview.innerHTML = '';
             outputSvgSize.textContent = '';
+          } finally {
+            svgLoader.style.display = 'none'; // Hide loader regardless of success or failure
           }
         };
         img.onerror = () => {
@@ -103,6 +113,7 @@
             svgOutput.value = '';
             outputSvgPreview.innerHTML = '';
             outputSvgSize.textContent = '';
+            svgLoader.style.display = 'none'; // Hide loader on image load error
         };
         img.src = base64Data;
 
@@ -113,6 +124,7 @@
         svgOutput.value = '';
         outputSvgPreview.innerHTML = '';
         outputSvgSize.textContent = '';
+        svgLoader.style.display = 'none'; // Hide loader if no base64 data
       }
     }
 
