@@ -312,6 +312,27 @@ ${svgRects.join("\n")}
           const imageData = ctx.getImageData(0, 0, img.width, img.height);
           const data = imageData.data;
 
+          const colorCounts = {};
+          for (let i = 0; i < data.length; i += 4) {
+            const alpha = data[i + 3];
+            if (alpha > 0) {
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+              const color = `rgb(${r},${g},${b})`;
+              colorCounts[color] = (colorCounts[color] || 0) + 1;
+            }
+          }
+
+          let mostFrequentColor = 'black'; // Default if no colors found
+          let maxCount = 0;
+          for (const color in colorCounts) {
+            if (colorCounts[color] > maxCount) {
+              maxCount = colorCounts[color];
+              mostFrequentColor = color;
+            }
+          }
+
           let svgLines = [];
           for (let y = 0; y < img.height; y++) {
             for (let x = 0; x < img.width; x++) {
@@ -325,7 +346,6 @@ ${svgRects.join("\n")}
                 const color = `rgb(${r},${g},${b})`;
 
                 let lineLength = 0;
-                // Check for contiguous pixels of the same color in the current row
                 while (x + lineLength < img.width) {
                   const nextIndex = (y * img.width + (x + lineLength)) * 4;
                   const nextAlpha = data[nextIndex + 3];
@@ -340,16 +360,15 @@ ${svgRects.join("\n")}
                   }
                 }
 
-                // Add a line segment
-                svgLines.push(`<line x1="${x}" y1="${y}" x2="${x + lineLength}" y2="${y}" stroke="${color}"/>`);
+                const strokeAttribute = (color === mostFrequentColor) ? '' : `stroke="${color}"`;
+                svgLines.push(`<line x1="${x}" y1="${y}" x2="${x + lineLength}" y2="${y}" ${strokeAttribute}/>`);
 
-                // Skip pixels that have already been covered by the line
                 x += lineLength - 1;
               }
             }
           }
 
-          const svgContent = `<svg width="${img.width}" height="${img.height}" viewBox="0 0 ${img.width} ${img.height}" xmlns="http://www.w3.org/2000/svg" stroke-width="1" shape-rendering="crispEdges">
+          const svgContent = `<svg width="${img.width}" height="${img.height}" viewBox="0 0 ${img.width} ${img.height}" xmlns="http://www.w3.org/2000/svg" stroke-width="1" shape-rendering="crispEdges" stroke="${mostFrequentColor}">
 ${svgLines.join("\n")}
 </svg>`;
           resolve(svgContent);
