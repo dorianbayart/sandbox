@@ -33,7 +33,7 @@
 
     <hr>
     
-    <section class="centered">
+    <section class="centered" style="display:none;">
 
       <div class="output-section">
         <h2>Pixel Perfect SVG</h2>
@@ -49,19 +49,19 @@
 
     </section>
 
-    <hr>
+    <hr style="display:none;">
 
     <section class="centered">
 
       <div class="output-section">
-        <h2>Optimized SVG</h2>
+        <h2>Pixel Perfect Optimized SVG</h2>
         <div id="optimizedSvgLoader" class="loader"></div>
         <textarea id="optimizedSvgOutput" readonly></textarea>
         <div class="svg-preview" id="optimizedOutputSvgPreview">Preview</div>
         <span id="optimizedOutputSvgSize" class="svg-size"></span>
         <div class="output-buttons">
-            <button id="copyOptimizedSvgButton">Copy Optimized SVG</button>
-            <button id="downloadOptimizedSvgButton">Download Optimized SVG</button>
+            <button id="copyOptimizedSvgButton">Copy SVG</button>
+            <button id="downloadOptimizedSvgButton">Download SVG</button>
         </div>
       </div>
 
@@ -147,7 +147,7 @@
             const originalSvgSize = svgBlob.size;
             const optimizedSvgSize = optimizedSvgBlob.size;
             const percentage = ((originalSvgSize - optimizedSvgSize) / originalSvgSize) * 100;
-            optimizedOutputSvgSize.textContent = `Optimized SVG Size: ${formatBytes(optimizedSvgSize)} (${percentage.toFixed(2)}% smaller)`;
+            optimizedOutputSvgSize.textContent = `Optimized SVG Size: ${formatBytes(optimizedSvgSize)} (${percentage.toFixed(2)}% smaller than non optimized SVG)`;
           } catch (error) {
             console.error('Optimized SVG conversion failed:', error);
             alert('Failed to convert image to Optimized SVG. Please check the console for details.');
@@ -290,8 +290,7 @@
           }
 
           const svgContent = `<svg width="${img.width}" height="${img.height}" viewBox="0 0 ${img.width} ${img.height}" xmlns="http://www.w3.org/2000/svg">
-${svgRects.join("\n")}
-</svg>`;
+            ${svgRects.join("")}</svg>`;
           resolve(svgContent);
         };
         img.src = base64Image;
@@ -382,10 +381,60 @@ ${svgRects.join("\n")}
             }
           }
 
-          const svgContent = `<svg width="${img.width}" height="${img.height}" viewBox="0 0 ${img.width} ${img.height}" xmlns="http://www.w3.org/2000/svg">
-${svgElements.join("\n")}
+          // Count color occurrences
+          const colorCounts = new Map();
+          for (const element of svgElements) {
+            const fillMatch = element.match(/fill="(.*?)"/);
+            if (fillMatch) {
+              const color = fillMatch[1];
+              colorCounts.set(color, (colorCounts.get(color) || 0) + 1);
+            }
+          }
+
+          const sortedColors = Array.from(colorCounts.entries()).sort((a, b) => b[1] - a[1]);
+          console.log(sortedColors)
+          const topColors = sortedColors.filter(([a, b]) => b > 8).map(entry => entry[0]);
+          console.log(topColors)
+
+          let finalSvgContent;
+          if (topColors.length === 1) {
+            // Case 1: Only one unique color, set it globally on the SVG
+            const singleColor = topColors[0];
+            const optimizedElements = svgElements.map(element => element.replace(/\s*fill=".*?"/, ''));
+            finalSvgContent = `<svg width="${img.width}" height="${img.height}" viewBox="0 0 ${img.width} ${img.height}" xmlns="http://www.w3.org/2000/svg" fill="${singleColor}">
+${optimizedElements.join("")}
 </svg>`;
-          resolve(svgContent);
+          } else {
+            // Case 2: Multiple colors, use CSS variables for top 4
+            let styleDefs = '';
+            const colorMap = new Map();
+            if (topColors.length > 0) {
+              styleDefs = '<defs><style>';
+              styleDefs += 'svg {'; // Define variables on the svg element
+              topColors.forEach((color, index) => {
+                const varName = `--c${index + 1}`;
+                styleDefs += `${varName}:${color};`;
+                colorMap.set(color, varName);
+              });
+              styleDefs += '}';
+              styleDefs += '</style></defs>';
+            }
+
+            const optimizedElements = svgElements.map(element => {
+              const fillMatch = element.match(/fill="(.*?)"/);
+              if (fillMatch) {
+                const color = fillMatch[1];
+                if (colorMap.has(color)) {
+                  return element.replace(`fill="${color}"`, `fill="var(${colorMap.get(color)})"`);
+                }
+              }
+              return element;
+            });
+
+            finalSvgContent = `<svg width="${img.width}" height="${img.height}" viewBox="0 0 ${img.width} ${img.height}" xmlns="http://www.w3.org/2000/svg">
+              ${styleDefs}${optimizedElements.join("")}</svg>`;
+          }
+          resolve(finalSvgContent);
         };
         img.src = base64Image;
       });
