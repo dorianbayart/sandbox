@@ -11,7 +11,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  padding: 0.5rem 1rem;
+  padding: 1% 2%;
   font-family: sans-serif;
   background-color: #f4f4f4;
   color: #333;
@@ -22,8 +22,8 @@ h2 {
 }
 
 hr {
-  width: 120%;
-  transform: translateX(-10%);
+  width: 104%;
+  transform: translateX(-2%);
 }
 
 main {
@@ -101,6 +101,7 @@ textarea {
     max-height: 192px;
     height: auto;
     display: block;
+    shape-rendering: crispedges; /* Important to draw pixel perfect */
 }
 
 .image-size, .svg-size {
