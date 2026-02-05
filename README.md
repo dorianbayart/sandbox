@@ -72,3 +72,4 @@ Display a canvas with the webcam stream: [Webcam](utils/webcam)
 
 ## Workers
 Use Web Workers to bubble sort a very big array: [Workers](workers)
+
