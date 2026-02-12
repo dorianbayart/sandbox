@@ -57,8 +57,11 @@ A tools to convert country codes into their emoji flag: [Emoji Flags](utils/emoj
 ### Loader
 Mini loader exemples: [Loader](utils/loader)
 
+### Image to PixelArt SVG
+An image to pixel art SVG converter: [Image to PixelArt SVG](utils/pixelart-converter)
+
 ### Image to SVG
-A pixel perfect image to SVG converter: [Image to SVG](utils/pixel-perfect-converter)
+An image to pixel perfect SVG converter: [Image to SVG](utils/pixel-perfect-converter)
 
 ### QR Code
 Generate a QR code: [Qr](utils/qr)

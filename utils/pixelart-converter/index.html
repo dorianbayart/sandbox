@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>PixelArt Converter</title>
+
+</head>
+
+<body>
+  <header>
+    <h1 class="cursive">Picture to PixelArt SVG</h1>
+    <subtitle>Online Image to PixelArt SVG Converter: Transform Images into Pixelated Scalable Vector Graphics</subtitle>
+  </header>
+
+  <main>
+    <section class="centered">
+
+      <div class="input-section">
+        <h2>Input Image</h2>
+        <div class="flex">
+          <input type="file" id="imageUpload" accept="image/*">
+          <span>OR</span>
+          <textarea id="base64Input" placeholder="Paste base64 image data here..."></textarea>
+        </div>
+        <div class="image-preview" id="inputImagePreview">Preview</div>
+        <span id="inputImageSize" class="image-size"></span>
+      </div>
+
+    </section>
+
+    <hr>
+
+    <section class="centered">
+
+      <div class="parameters-section">
+        <h2>PixelArt Parameters</h2>
+
+        <div class="parameter-group">
+          <label for="outputWidth">Output Width</label>
+          <div class="slider-container">
+            <input type="range" id="outputWidth" min="10" max="192" value="100" step="1">
+            <span class="slider-value"><span id="outputWidthValue">100</span>px</span>
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <label for="outputHeight">Output Height</label>
+          <div class="slider-container">
+            <input type="range" id="outputHeight" min="10" max="192" value="100" step="1">
+            <span class="slider-value"><span id="outputHeightValue">100</span>px</span>
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <label for="lockRatio">
+            <input type="checkbox" id="lockRatio" checked>
+            Lock Aspect Ratio
+          </label>
+        </div>
+
+        <div class="parameter-group">
+          <label for="colorCount">Number of Colors</label>
+          <div class="slider-container">
+            <input type="range" id="colorCount" min="2" max="256" value="10" step="1">
+            <span class="slider-value" id="colorCountValue">10</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <hr>
+
+    <section class="centered">
+
+      <div class="output-section">
+        <h2>PixelArt SVG Output</h2>
+        <div id="optimizedSvgLoader" class="loader"></div>
+        <textarea id="optimizedSvgOutput" readonly></textarea>
+        <div class="preview-container">
+          <div class="preview-wrapper">
+            <div class="svg-preview" id="optimizedOutputSvgPreview">Preview</div>
+            <span class="preview-label">Actual Size Preview</span>
+          </div>
+          <div class="preview-wrapper">
+            <div class="svg-preview fixed-preview" id="optimizedOutputSvgPreviewFixed">Preview</div>
+            <span class="preview-label">192px Height Preview</span>
+          </div>
+        </div>
+        <span id="optimizedOutputSvgSize" class="svg-size"></span>
+        <div class="output-buttons">
+            <button id="copyOptimizedSvgButton">Copy SVG</button>
+            <button id="downloadOptimizedSvgButton">Download SVG</button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+
+  <script>
+    // JavaScript will go here
+    const imageUpload = document.getElementById('imageUpload');
+    const base64Input = document.getElementById('base64Input');
+    const inputImagePreview = document.getElementById('inputImagePreview');
+    const inputImageSize = document.getElementById('inputImageSize');
+
+    const outputWidth = document.getElementById('outputWidth');
+    const outputWidthValue = document.getElementById('outputWidthValue');
+    const outputHeight = document.getElementById('outputHeight');
+    const outputHeightValue = document.getElementById('outputHeightValue');
+    const lockRatio = document.getElementById('lockRatio');
+    const colorCount = document.getElementById('colorCount');
+    const colorCountValue = document.getElementById('colorCountValue');
+
+    const optimizedSvgOutput = document.getElementById('optimizedSvgOutput');
+    const optimizedOutputSvgPreview = document.getElementById('optimizedOutputSvgPreview');
+    const optimizedOutputSvgPreviewFixed = document.getElementById('optimizedOutputSvgPreviewFixed');
+    const optimizedOutputSvgSize = document.getElementById('optimizedOutputSvgSize');
+    const copyOptimizedSvgButton = document.getElementById('copyOptimizedSvgButton');
+    const downloadOptimizedSvgButton = document.getElementById('downloadOptimizedSvgButton');
+    const optimizedSvgLoader = document.getElementById('optimizedSvgLoader');
+
+    let currentImageBase64 = '';
+    let originalAspectRatio = 1;
+    let isProcessing = false;
+    let isFirstImageLoad = true;
+
+    async function convertCurrentImage() {
+      if (!currentImageBase64 || isProcessing) return;
+
+      isProcessing = true;
+      optimizedSvgLoader.style.display = 'block';
+      optimizedSvgOutput.value = '';
+      optimizedOutputSvgPreview.innerHTML = '';
+      optimizedOutputSvgPreviewFixed.innerHTML = '';
+      optimizedOutputSvgSize.textContent = '';
+
+      try {
+        const params = {
+          width: parseInt(outputWidth.value),
+          height: parseInt(outputHeight.value),
+          colorCount: parseInt(colorCount.value)
+        };
+        const optimizedSvgResult = await convertToOptimizedSVG(currentImageBase64, params);
+        optimizedSvgOutput.value = optimizedSvgResult;
+        optimizedOutputSvgPreview.innerHTML = optimizedSvgResult;
+        optimizedOutputSvgPreviewFixed.innerHTML = optimizedSvgResult;
+        const optimizedSvgBlob = new Blob([optimizedSvgResult], { type: 'image/svg+xml' });
+        const optimizedSvgSize = optimizedSvgBlob.size;
+        optimizedOutputSvgSize.textContent = `PixelArt SVG Size: ${formatBytes(optimizedSvgSize)}`;
+      } catch (error) {
+        console.error('Optimized SVG conversion failed:', error);
+        alert('Failed to convert image to PixelArt SVG. Please check the console for details.');
+        optimizedSvgOutput.value = '';
+        optimizedOutputSvgPreview.innerHTML = '';
+        optimizedOutputSvgPreviewFixed.innerHTML = '';
+        optimizedOutputSvgSize.textContent = '';
+      } finally {
+        optimizedSvgLoader.style.display = 'none';
+        isProcessing = false;
+      }
+    }
+
+    async function processImage(base64Data) {
+      if (base64Data) {
+        inputImagePreview.innerHTML = `<img src="${base64Data}" alt="Input Image Preview">`;
+        currentImageBase64 = base64Data;
+
+        optimizedSvgLoader.style.display = 'block';
+        optimizedSvgOutput.value = '';
+        optimizedOutputSvgPreview.innerHTML = '';
+        optimizedOutputSvgPreviewFixed.innerHTML = '';
+        optimizedOutputSvgSize.textContent = '';
+
+        const img = new Image();
+        img.onload = async () => {
+          inputImageSize.textContent = `Original Size: ${img.width}x${img.height} pixels`;
+
+          // Store original aspect ratio
+          originalAspectRatio = img.width / img.height;
+
+          // Cap slider max at 192px
+          const maxWidth = Math.min(img.width, 192);
+          const maxHeight = Math.min(img.height, 192);
+          outputWidth.max = maxWidth;
+          outputHeight.max = maxHeight;
+
+          // Only initialize parameters on first image load
+          if (isFirstImageLoad) {
+            let initialWidth, initialHeight;
+
+            // Find the larger dimension and scale it to 128px
+            const maxDimension = Math.max(img.width, img.height);
+
+            if (maxDimension > 128) {
+              // Scale so the larger dimension becomes 128px
+              const scaleFactor = 128 / maxDimension;
+              initialWidth = Math.round(img.width * scaleFactor);
+              initialHeight = Math.round(img.height * scaleFactor);
+            } else {
+              // Image is already small, use original dimensions
+              initialWidth = img.width;
+              initialHeight = img.height;
+            }
+
+            // Cap at 192px (shouldn't be needed with above logic, but just in case)
+            initialWidth = Math.min(initialWidth, 192);
+            initialHeight = Math.min(initialHeight, 192);
+
+            outputWidth.value = initialWidth;
+            outputWidthValue.textContent = initialWidth;
+            outputHeight.value = initialHeight;
+            outputHeightValue.textContent = initialHeight;
+
+            isFirstImageLoad = false;
+          } else {
+            // Clamp existing values to new max if needed
+            if (parseInt(outputWidth.value) > maxWidth) {
+              outputWidth.value = maxWidth;
+              outputWidthValue.textContent = maxWidth;
+            }
+            if (parseInt(outputHeight.value) > maxHeight) {
+              outputHeight.value = maxHeight;
+              outputHeightValue.textContent = maxHeight;
+            }
+          }
+
+          // Calculate and display input image size in bytes
+          try {
+            const response = await fetch(base64Data);
+            const blob = await response.blob();
+            inputImageSize.textContent += ` (${formatBytes(blob.size)})`;
+          } catch (error) {
+            console.error('Failed to fetch image blob for size calculation:', error);
+            inputImageSize.textContent += ' (Size unknown)';
+          }
+
+          // Convert the image with current parameters
+          await convertCurrentImage();
+        };
+        img.onerror = () => {
+            inputImageSize.textContent = 'Invalid image data';
+            inputImagePreview.innerHTML = '';
+            currentImageBase64 = '';
+            svgOutput.value = '';
+            outputSvgPreview.innerHTML = '';
+            outputSvgSize.textContent = '';
+            svgLoader.style.display = 'none'; // Hide loader on image load error
+        };
+        img.src = base64Data;
+
+      } else {
+        inputImagePreview.innerHTML = '';
+        inputImageSize.textContent = '';
+        currentImageBase64 = '';
+        svgOutput.value = '';
+        outputSvgPreview.innerHTML = '';
+        outputSvgSize.textContent = '';
+        svgLoader.style.display = 'none'; // Hide loader if no base64 data
+      }
+    }
+
+    imageUpload.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          base64Input.value = e.target.result; // Sync base64 input
+          processImage(e.target.result);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        base64Input.value = '';
+        processImage('');
+      }
+    });
+
+    base64Input.addEventListener('input', (event) => {
+      processImage(event.target.value);
+      imageUpload.value = ''; // Clear file input if base64 is manually entered
+    });
+
+    // Parameters event listeners
+    outputWidth.addEventListener('input', (event) => {
+      const width = event.target.value;
+      outputWidthValue.textContent = width;
+
+      if (lockRatio.checked) {
+        const height = Math.round(width / originalAspectRatio);
+        outputHeight.value = height;
+        outputHeightValue.textContent = height;
+      }
+
+      // Re-convert image with new parameters
+      convertCurrentImage();
+    });
+
+    outputHeight.addEventListener('input', (event) => {
+      const height = event.target.value;
+      outputHeightValue.textContent = height;
+
+      if (lockRatio.checked) {
+        const width = Math.round(height * originalAspectRatio);
+        outputWidth.value = width;
+        outputWidthValue.textContent = width;
+      }
+
+      // Re-convert image with new parameters
+      convertCurrentImage();
+    });
+
+    colorCount.addEventListener('input', (event) => {
+      colorCountValue.textContent = event.target.value;
+
+      // Re-convert image with new parameters
+      convertCurrentImage();
+    });
+
+    copyOptimizedSvgButton.addEventListener('click', () => {
+      optimizedSvgOutput.select();
+      document.execCommand('copy');
+      alert('PixelArt SVG copied to clipboard!');
+    });
+
+    downloadOptimizedSvgButton.addEventListener('click', () => {
+      const svgContent = optimizedSvgOutput.value;
+      if (svgContent) {
+        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'pixelart.svg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        alert('No PixelArt SVG to download.');
+      }
+    });
+
+    // Helper function to format bytes into human-readable sizes
+    function formatBytes(bytes, decimals = 2) {
+      if (bytes === 0) return '0 Bytes';
+
+      const k = 1024;
+      const dm = decimals < 0 ? 0 : decimals;
+      const sizes = ['Bytes', 'KB', 'MB'];
+
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    // K-means color quantization
+    function quantizeColors(data, targetColors) {
+      // Extract unique colors
+      const colorMap = new Map();
+      for (let i = 0; i < data.length; i += 4) {
+        const alpha = data[i + 3];
+        if (alpha === 0) continue; // Skip transparent pixels
+
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const key = `${r},${g},${b}`;
+
+        if (!colorMap.has(key)) {
+          colorMap.set(key, { r, g, b, count: 0 });
+        }
+        colorMap.get(key).count++;
+      }
+
+      const uniqueColors = Array.from(colorMap.values());
+
+      // If already at or below target, no quantization needed
+      if (uniqueColors.length <= targetColors) {
+        return;
+      }
+
+      // Initialize centroids - use k-means++ initialization for better results
+      const centroids = initializeCentroids(uniqueColors, targetColors);
+
+      // Run k-means clustering
+      const maxIterations = 20;
+      for (let iter = 0; iter < maxIterations; iter++) {
+        // Assign colors to nearest centroid
+        const clusters = Array(targetColors).fill(0).map(() => []);
+
+        for (const color of uniqueColors) {
+          let minDist = Infinity;
+          let bestCluster = 0;
+
+          for (let c = 0; c < centroids.length; c++) {
+            const dist = colorDistance(color, centroids[c]);
+            if (dist < minDist) {
+              minDist = dist;
+              bestCluster = c;
+            }
+          }
+
+          clusters[bestCluster].push(color);
+        }
+
+        // Recalculate centroids
+        let converged = true;
+        for (let c = 0; c < centroids.length; c++) {
+          if (clusters[c].length === 0) continue;
+
+          const newCentroid = calculateCentroid(clusters[c]);
+
+          if (colorDistance(centroids[c], newCentroid) > 1) {
+            converged = false;
+          }
+
+          centroids[c] = newCentroid;
+        }
+
+        if (converged) break;
+      }
+
+      // Map each pixel to nearest centroid color
+      for (let i = 0; i < data.length; i += 4) {
+        const alpha = data[i + 3];
+        if (alpha === 0) continue;
+
+        const color = { r: data[i], g: data[i + 1], b: data[i + 2] };
+        const nearest = findNearestCentroid(color, centroids);
+
+        data[i] = nearest.r;
+        data[i + 1] = nearest.g;
+        data[i + 2] = nearest.b;
+      }
+    }
+
+    function initializeCentroids(colors, k) {
+      const centroids = [];
+
+      // Choose first centroid randomly (weighted by count)
+      const totalCount = colors.reduce((sum, c) => sum + c.count, 0);
+      let random = Math.random() * totalCount;
+      let accumulated = 0;
+
+      for (const color of colors) {
+        accumulated += color.count;
+        if (accumulated >= random) {
+          centroids.push({ r: color.r, g: color.g, b: color.b });
+          break;
+        }
+      }
+
+      // Choose remaining centroids using k-means++ algorithm
+      while (centroids.length < k) {
+        const distances = colors.map(color => {
+          const minDist = Math.min(...centroids.map(c => colorDistance(color, c)));
+          return minDist * minDist * color.count;
+        });
+
+        const totalDist = distances.reduce((sum, d) => sum + d, 0);
+        random = Math.random() * totalDist;
+        accumulated = 0;
+
+        for (let i = 0; i < colors.length; i++) {
+          accumulated += distances[i];
+          if (accumulated >= random) {
+            centroids.push({ r: colors[i].r, g: colors[i].g, b: colors[i].b });
+            break;
+          }
+        }
+      }
+
+      return centroids;
+    }
+
+    function calculateCentroid(colors) {
+      const totalWeight = colors.reduce((sum, c) => sum + c.count, 0);
+
+      const r = colors.reduce((sum, c) => sum + c.r * c.count, 0) / totalWeight;
+      const g = colors.reduce((sum, c) => sum + c.g * c.count, 0) / totalWeight;
+      const b = colors.reduce((sum, c) => sum + c.b * c.count, 0) / totalWeight;
+
+      return {
+        r: Math.round(r),
+        g: Math.round(g),
+        b: Math.round(b)
+      };
+    }
+
+    function colorDistance(c1, c2) {
+      const dr = c1.r - c2.r;
+      const dg = c1.g - c2.g;
+      const db = c1.b - c2.b;
+      return Math.sqrt(dr * dr + dg * dg + db * db);
+    }
+
+    function findNearestCentroid(color, centroids) {
+      let minDist = Infinity;
+      let nearest = centroids[0];
+
+      for (const centroid of centroids) {
+        const dist = colorDistance(color, centroid);
+        if (dist < minDist) {
+          minDist = dist;
+          nearest = centroid;
+        }
+      }
+
+      return nearest;
+    }
+
+    function convertToPixelPerfectSVG(base64Image) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          const imageData = ctx.getImageData(0, 0, img.width, img.height);
+          const data = imageData.data;
+
+          let svgRects = [];
+          for (let y = 0; y < img.height; y++) {
+            for (let x = 0; x < img.width; x++) {
+              const index = (y * img.width + x) * 4;
+              const alpha = data[index + 3]; // Alpha channel
+
+              if (alpha > 0) { // Only draw if not fully transparent
+                const r = data[index];
+                const g = data[index + 1];
+                const b = data[index + 2];
+                const color = `rgb(${r},${g},${b})`;
+                svgRects.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`);
+              }
+            }
+          }
+
+          const svgContent = `<svg width="${img.width}" height="${img.height}" viewBox="0 0 ${img.width} ${img.height}" xmlns="http://www.w3.org/2000/svg">
+            ${svgRects.join("")}</svg>`;
+          resolve(svgContent);
+        };
+        img.src = base64Image;
+      });
+    }
+
+    function convertToOptimizedSVG(base64Image, params = {}) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          // Use parameters for output dimensions, default to original if not provided
+          const outputWidth = params.width || img.width;
+          const outputHeight = params.height || img.height;
+
+          // Create canvas with output dimensions
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          canvas.width = outputWidth;
+          canvas.height = outputHeight;
+
+          // Disable image smoothing for pixelart effect
+          ctx.imageSmoothingEnabled = false;
+          ctx.mozImageSmoothingEnabled = false;
+          ctx.webkitImageSmoothingEnabled = false;
+          ctx.msImageSmoothingEnabled = false;
+
+          // Draw image scaled to output dimensions
+          ctx.drawImage(img, 0, 0, outputWidth, outputHeight);
+
+          const imageData = ctx.getImageData(0, 0, outputWidth, outputHeight);
+          const data = imageData.data;
+
+          // Apply color quantization if needed
+          const targetColorCount = params.colorCount || 256;
+          quantizeColors(data, targetColorCount);
+
+          const processedPixels = Array(outputHeight).fill(0).map(() => Array(outputWidth).fill(false));
+
+          let svgElements = [];
+
+          for (let y = 0; y < outputHeight; y++) {
+            for (let x = 0; x < outputWidth; x++) {
+              const index = (y * outputWidth + x) * 4;
+              const alpha = data[index + 3];
+
+              // If pixel is transparent or already processed, skip it
+              if (alpha === 0 || processedPixels[y][x]) {
+                continue;
+              }
+
+              const r = data[index];
+              const g = data[index + 1];
+              const b = data[index + 2];
+              const currentColor = `rgb(${r},${g},${b})`;
+
+              // Determine the maximum possible width for a rectangle starting at (x, y)
+              let currentWidth = 0;
+              for (let w = x; w < outputWidth; w++) {
+                const pixelIndex = (y * outputWidth + w) * 4;
+                const pixelAlpha = data[pixelIndex + 3];
+                const pixelR = data[pixelIndex];
+                const pixelG = data[pixelIndex + 1];
+                const pixelB = data[pixelIndex + 2];
+                const pixelColor = `rgb(${pixelR},${pixelG},${pixelB})`;
+
+                if (pixelAlpha > 0 && pixelColor === currentColor && !processedPixels[y][w]) {
+                  currentWidth++;
+                } else {
+                  break;
+                }
+              }
+
+              // Determine the maximum possible height for this currentWidth
+              let currentHeight = 0;
+              for (let h = y; h < outputHeight; h++) {
+                let rowIsSolid = true;
+                for (let w = x; w < x + currentWidth; w++) {
+                  const pixelIndex = (h * outputWidth + w) * 4;
+                  const pixelAlpha = data[pixelIndex + 3];
+                  const pixelR = data[pixelIndex];
+                  const pixelG = data[pixelIndex + 1];
+                  const pixelB = data[pixelIndex + 2];
+                  const pixelColor = `rgb(${pixelR},${pixelG},${pixelB})`;
+
+                  if (pixelAlpha === 0 || pixelColor !== currentColor || processedPixels[h][w]) {
+                    rowIsSolid = false;
+                    break;
+                  }
+                }
+                if (rowIsSolid) {
+                  currentHeight++;
+                } else {
+                  break;
+                }
+              }
+
+              // Add the rectangle and mark pixels as processed
+              svgElements.push(`<rect x="${x}" y="${y}" width="${currentWidth}" height="${currentHeight}" fill="${currentColor}"/>`);
+              for (let h = 0; h < currentHeight; h++) {
+                for (let w = x; w < x + currentWidth; w++) {
+                  processedPixels[y + h][w] = true;
+                }
+              }
+            }
+          }
+
+          // Count color occurrences
+          const colorCounts = new Map();
+          for (const element of svgElements) {
+            const fillMatch = element.match(/fill="(.*?)"/);
+            if (fillMatch) {
+              const color = fillMatch[1];
+              colorCounts.set(color, (colorCounts.get(color) || 0) + 1);
+            }
+          }
+
+          const sortedColors = Array.from(colorCounts.entries()).sort((a, b) => b[1] - a[1]);
+          const topColors = sortedColors.filter(([a, b]) => b > 8).map(entry => entry[0]);
+
+          let finalSvgContent;
+          if (topColors.length === 1) {
+            // Case 1: Only one unique color, set it globally on the SVG
+            const singleColor = topColors[0];
+            const optimizedElements = svgElements.map(element => element.replace(/\s*fill=".*?"/, ''));
+            finalSvgContent = `<svg width="${outputWidth}" height="${outputHeight}" viewBox="0 0 ${outputWidth} ${outputHeight}" xmlns="http://www.w3.org/2000/svg" fill="${singleColor}">
+${optimizedElements.join("")}
+</svg>`;
+          } else {
+            // Case 2: Multiple colors, use CSS variables for top 4
+            let styleDefs = '';
+            const colorMap = new Map();
+            if (topColors.length > 0) {
+              styleDefs = '<defs><style>';
+              styleDefs += 'svg{'; // Define variables on the svg element
+              topColors.forEach((color, index) => {
+                const varName = `--c${index + 1}`;
+                styleDefs += `${varName}:${color};`;
+                colorMap.set(color, varName);
+              });
+              styleDefs += '}';
+              styleDefs += '</style></defs>';
+            }
+
+            const optimizedElements = svgElements.map(element => {
+              const fillMatch = element.match(/fill="(.*?)"/);
+              if (fillMatch) {
+                const color = fillMatch[1];
+                if (colorMap.has(color)) {
+                  return element.replace(`fill="${color}"`, `fill="var(${colorMap.get(color)})"`);
+                }
+              }
+              return element;
+            });
+
+            finalSvgContent = `<svg width="${outputWidth}" height="${outputHeight}" viewBox="0 0 ${outputWidth} ${outputHeight}" xmlns="http://www.w3.org/2000/svg">
+              ${styleDefs}${optimizedElements.join("")}</svg>`;
+          }
+          resolve(finalSvgContent);
+        };
+        img.src = base64Image;
+      });
+    }
+  </script>
+
+
+
+
+  <footer>
+    <div id="footer">&copy; 2000 <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a>
+    </div>
+  </footer>
+
+  <script>
+    const currentYear = new Date().getFullYear()
+    document.querySelector('footer div#footer').innerHTML = `&copy; ${currentYear} <a href="https://github.com/dorianbayart" title="DorianBayart on GitHub">0xDBA</a>`
+  </script>
+
+</body>
+
+<link rel="stylesheet" href="common.css">
+
+</html>
