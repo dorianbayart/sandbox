@@ -1,0 +1,22 @@
+---
+layout: default
+---
+{%- comment -%}
+  Turns the README into a card grid, without touching its Markdown:
+  each "## Section" becomes a section, each "### Project" below it becomes a card.
+{%- endcomment -%}
+{%- assign sections = content | split: '<h2' -%}
+<header class="intro">
+  {{ sections.first }}
+</header>
+{%- for section in sections offset: 1 -%}
+  {%- assign cards = section | split: '<h3' %}
+<section>
+  <h2{{ cards.first }}
+  <div class="grid">
+    {%- for card in cards offset: 1 %}
+    <article class="card"><h3{{ card }}</article>
+    {%- endfor %}
+  </div>
+</section>
+{%- endfor %}

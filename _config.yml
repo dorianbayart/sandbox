@@ -1,0 +1,9 @@
+title: Sandbox
+description: Playground.
+
+# The README is the home page: its sections and projects become a card grid
+defaults:
+  - scope:
+      path: "README.md"
+    values:
+      layout: home
