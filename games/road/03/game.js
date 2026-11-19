@@ -292,6 +292,8 @@ class Car {
         this.friction = 0.075;
         this.angle = 0;
         this.damaged = false;
+        this.age = 0; // Frames since spawn
+        this.generation = 1; // Lineage depth of its brain (parent's generation + 1)
 
         if (controlType != "DUMMY") {
             this.sensor = new Sensor(this);
@@ -582,7 +584,11 @@ function generateCars(N) {
     return cars;
 }
 
+// Every pattern must stay passable: never 3 lanes blocked on the same row, and
+// at least TRAFFIC_ROW_GAP between two rows so a car (50px long) has room to
+// change lanes between them. Offsets are multiples of that gap.
 function generateTrafficPattern() {
+    const g = TRAFFIC_ROW_GAP;
     const patterns = [
         // Une voie libre - facile
         [{ lane: 0, offset: 0 }, { lane: 1, offset: 0 }], // droite libre
@@ -592,19 +598,19 @@ function generateTrafficPattern() {
         // Chicanes - moyen
         [{ lane: 0, offset: 0 }, { lane: 2, offset: -120 }], // slalom droite
         [{ lane: 2, offset: 0 }, { lane: 0, offset: -120 }], // slalom gauche
-        [{ lane: 1, offset: 0 }, { lane: 0, offset: -100 }, { lane: 2, offset: -200 }], // S
-        
+        [{ lane: 1, offset: 0 }, { lane: 0, offset: -g }, { lane: 2, offset: -2 * g }], // S
+
         // Passages étroits - difficile
-        [{ lane: 0, offset: 0 }, { lane: 1, offset: -60 }, { lane: 2, offset: 0 }], // passage central
-        [{ lane: 0, offset: -60 }, { lane: 1, offset: 0 }, { lane: 2, offset: -60 }], // passage central inversé
-        
+        [{ lane: 0, offset: 0 }, { lane: 1, offset: -g }, { lane: 2, offset: 0 }], // passage central
+        [{ lane: 0, offset: -g }, { lane: 1, offset: 0 }, { lane: 2, offset: -g }], // passage central inversé
+
         // Dense mais passage en diagonale - très difficile
-        [{ lane: 0, offset: 0 }, { lane: 1, offset: -80 }, { lane: 2, offset: -160 }],
-        [{ lane: 2, offset: 0 }, { lane: 1, offset: -80 }, { lane: 0, offset: -160 }],
-        
+        [{ lane: 0, offset: 0 }, { lane: 1, offset: -g }, { lane: 2, offset: -2 * g }],
+        [{ lane: 2, offset: 0 }, { lane: 1, offset: -g }, { lane: 0, offset: -2 * g }],
+
         // Murs décalés avec gap - expert
-        [{ lane: 0, offset: 0 }, { lane: 1, offset: 0 }, { lane: 2, offset: -140 }],
-        [{ lane: 0, offset: -140 }, { lane: 1, offset: 0 }, { lane: 2, offset: 0 }]
+        [{ lane: 0, offset: 0 }, { lane: 1, offset: 0 }, { lane: 2, offset: -g }],
+        [{ lane: 0, offset: -g }, { lane: 1, offset: 0 }, { lane: 2, offset: 0 }]
     ];
     
     return patterns[Math.floor(Math.random() * patterns.length)];
@@ -630,24 +636,36 @@ function spawnTraffic(baseY) {
     return newCars;
 }
 
+// Highest (furthest) traffic car; traffic all drives at the same speed, so the
+// spacing between groups set at spawn time is kept
+function trafficTopY() {
+    return traffic.reduce((top, c) => Math.min(top, c.y), Infinity);
+}
+
 function updateTrafficSpawning() {
     const leadY = Math.min(playerCar.y, bestCar.y);
-    
-    if (leadY - lastTrafficSpawnY < -TRAFFIC_SPAWN_INTERVAL) {
-        const spawnY = leadY - TRAFFIC_SPAWN_DISTANCE;
-        const newTraffic = spawnTraffic(spawnY);
-        traffic.push(...newTraffic);
-        lastTrafficSpawnY = spawnY;
+    const topY = trafficTopY();
+
+    // Keep traffic up to TRAFFIC_SPAWN_DISTANCE ahead, spawned off-screen and
+    // always TRAFFIC_GROUP_GAP above the previous group so groups never merge into a wall
+    if (topY > leadY - TRAFFIC_SPAWN_DISTANCE) {
+        const spawnY = Math.min(topY - TRAFFIC_GROUP_GAP, leadY - TRAFFIC_SPAWN_DISTANCE);
+        traffic.push(...spawnTraffic(spawnY));
     }
     
-    // Remove traffic based on playerCar position (camera follows player)
+    // Remove traffic far behind the AI lead and far from the player (camera follows
+    // the player): otherwise it piles up when the AI cars race away from a stopped player
     for (let i = traffic.length - 1; i >= 0; i--) {
-        if (traffic[i].y > playerCar.y + TRAFFIC_REMOVE_DISTANCE) {
+        const t = traffic[i];
+        const farBehindLead = t.y > bestCar.y + TRAFFIC_REMOVE_DISTANCE;
+        const farFromPlayer = Math.abs(t.y - playerCar.y) > TRAFFIC_REMOVE_DISTANCE;
+        if (farBehindLead && farFromPlayer) {
             traffic.splice(i, 1);
         }
     }
 }
 
+/** Deprecated */
 function resetGeneration() {
     // Find best car: furthest distance + bonus for being alive
     bestCar = cars.reduce((best, current) => {
@@ -697,6 +715,66 @@ function resetGeneration() {
     generation++;
 }
 
+// Find a free spot just behind the lead car: spawning ahead of it would make every
+// other car "too far behind" (endless kill/respawn cascade), and spawning on top
+// of a traffic car kills the new car on its first frame
+function findSpawnPoint() {
+    const baseY = cars.length > 0 ? Math.min(...cars.map(c => c.y)) + 100 : playerCar.y - 100;
+    for (const dy of [0, 150, 300]) {
+        for (const lane of [1, 0, 2]) {
+            const x = road.getLaneCenter(lane);
+            const y = baseY + dy;
+            const blocked = traffic.some(t => Math.abs(t.x - x) < 30 && Math.abs(t.y - y) < SPAWN_CLEARANCE);
+            if (!blocked) return { x, y };
+        }
+    }
+    return null;
+}
+
+function spawnNewCar() {
+    const spot = findSpawnPoint();
+    if (!spot) return null; // No free spot this frame, try again on the next one
+    totalCarsSpawned++;
+
+    // Déterminer le cerveau de départ
+    let brain;
+    if (globalBestBrain) {
+        brain = JSON.parse(JSON.stringify(globalBestBrain));
+    } else if (localStorage.getItem("bestBrain")) {
+        brain = JSON.parse(localStorage.getItem("bestBrain"));
+    } else {
+        brain = null;
+    }
+    
+    const newCar = new Car(spot.x, spot.y, 30, 50, "AI");
+    
+    // Assigner et muter le cerveau si disponible
+    if (brain) {
+        newCar.brain = brain;
+        newCar.generation = (recordHolder ? recordHolder.generation : 1) + 1;
+
+        // Stratégie de mutation variée
+        const rand = Math.random();
+        if (rand < 0.05) {
+            // 5% élite: pas de mutation
+        } else if (rand < 0.30) {
+            // 25% mutation légère
+            NeuralNetwork.mutate(newCar.brain, 0.05);
+        } else if (rand < 0.70) {
+            // 40% mutation moyenne
+            NeuralNetwork.mutate(newCar.brain, 0.15);
+        } else if (rand < 0.90) {
+            // 20% mutation forte
+            NeuralNetwork.mutate(newCar.brain, 0.35);
+        } else {
+            // 10% exploration extrême
+            NeuralNetwork.mutate(newCar.brain, 0.7);
+        }
+    }
+    
+    return newCar;
+}
+
 function animate() {
     // Pass 1: Update movement and create polygons for all cars
     playerCar.update(road.borders, [], false);
@@ -704,7 +782,8 @@ function animate() {
         traffic[i].update(road.borders, [], false); 
     }
     for (let i = 0; i < cars.length; i++) {
-        cars[i].update(road.borders, [], false); 
+        cars[i].update(road.borders, [], false);
+        cars[i].age++;
     }
 
     // Pass 2: Update sensors and assess damage for all cars
@@ -713,36 +792,70 @@ function animate() {
         traffic[i].update(road.borders, cars.concat([playerCar]), true); 
     }
     for (let i = 0; i < cars.length; i++) {
-        // Include other AI cars in the sensor detection
-        const otherCars = cars.filter((c, index) => index !== i);
-        cars[i].update(road.borders, traffic/*.concat(otherCars)*/.concat([playerCar]), true);
+        // AI cars do not see each other (add the other AI cars here to change that)
+        cars[i].update(road.borders, traffic.concat([playerCar]), true);
     }
 
-    bestCar = cars.find(
-        c => c.y == Math.min(
-            ...cars.map(c => c.y)
-        )
-    );
+    // Lead car: the furthest AI car still alive (single pass)
+    bestCar = cars.reduce(
+        (best, c) => !c.damaged && (!best || c.y < best.y) ? c : best,
+        null
+    ) || cars[0] || bestCar;
 
-    // Cars are damaged if too far behind
-    for (let i = 0; i < cars.length; i++) {
-        if (!cars[i].damaged && cars[i].y - bestCar.y > MAX_LAG_DISTANCE || Math.abs(bestCar.speed) < 0.05) {
-            cars[i].damaged = true;
+    // Update best brain ever (a car still in its spawn grace period has proven nothing yet)
+    if (!bestCar.damaged && bestCar.age > SPAWN_GRACE_FRAMES) {
+        const currentBestDistance = -bestCar.y;
+        if (currentBestDistance > generationBestDistance) {
+            generationBestDistance = currentBestDistance;
+            // A brain never changes during a car's life: copy and save it only when
+            // a new car takes the record
+            if (bestCar !== recordHolder) {
+                recordHolder = bestCar;
+                globalBestBrain = JSON.parse(JSON.stringify(bestCar.brain));
+                localStorage.setItem("bestBrain", JSON.stringify(bestCar.brain));
+                if (bestCar.generation > generation) {
+                    generation = bestCar.generation;
+                    console.log(`🏆 New generation ${generation}: ${currentBestDistance.toFixed(0)}px (car #${totalCarsSpawned})`);
+                }
+            }
         }
+    }
+
+    // Cars are damaged if too far behind, or stalled once their spawn grace period is over
+    for (let i = 0; i < cars.length; i++) {
+        const car = cars[i];
+        if (car.damaged) continue;
+        const tooFarBehind = car.y - bestCar.y > MAX_LAG_DISTANCE;
+        const stalled = car.age > SPAWN_GRACE_FRAMES && Math.abs(car.speed) < 0.05;
+        if (tooFarBehind || stalled) {
+            car.damaged = true;
+        }
+    }
+
+    // Continuous learning: replace died cars
+    for (let i = cars.length - 1; i >= 0; i--) {
+        if (cars[i].damaged) {
+            cars.splice(i, 1);
+        }
+    }
+    while (cars.length < N) {
+        const newCar = spawnNewCar();
+        if (!newCar) break;
+        cars.push(newCar);
     }
 
     // Manage dynamic traffic spawning
     updateTrafficSpawning();
 
-    // Check if all AI cars are damaged OR if generation has stalled
-    const allDamaged = cars.every(c => c.damaged);
-    const bestStuck = bestCar.damaged || Math.abs(bestCar.speed) < 0.1;
-    const aliveCount = cars.filter(c => !c.damaged).length;
+    // // Check if all AI cars are damaged OR if generation has stalled
+    // const allDamaged = cars.every(c => c.damaged);
+    // const bestStuck = bestCar.damaged || Math.abs(bestCar.speed) < 0.1;
+    // const aliveCount = cars.filter(c => !c.damaged).length;
 
-    // Reset after a timeout even if some cars are alive but stuck
-    if (allDamaged || (aliveCount < 2 && bestStuck)) {
-        resetGeneration();
-    }
+    // // Reset after a timeout even if some cars are alive but stuck
+    // if (allDamaged || (aliveCount < 2 && bestStuck)) {
+    //     resetGeneration();
+    // }
 
     ctx.save();
     
@@ -764,7 +877,7 @@ function animate() {
     // Update UI
     document.getElementById('generation').textContent = generation;
     document.getElementById('bestDistance').textContent = generationBestDistance.toFixed(0);
-    document.getElementById('alive').textContent = cars.filter(c => !c.damaged).length;
+    document.getElementById('alive').textContent = `${cars.filter(c => !c.damaged).length}/${N}`;
 
     requestAnimationFrame(animate);
 }
@@ -786,13 +899,18 @@ const cars = generateCars(N);
 let bestCar = cars[0];
 let generation = 1;
 let generationBestDistance = 0;
+let totalCarsSpawned = 0;
+let globalBestBrain = null;
+let recordHolder = null; // Car whose brain is the current best one
 
 // Traffic spawning configuration
 const TRAFFIC_SPAWN_DISTANCE = 1000; // Spawn traffic this far ahead
 const TRAFFIC_REMOVE_DISTANCE = 1800; // Remove traffic this far behind
-const TRAFFIC_SPAWN_INTERVAL = 320; // Min distance between spawns
+const TRAFFIC_ROW_GAP = 170; // Min distance between two rows inside a pattern
+const TRAFFIC_GROUP_GAP = 260; // Min distance between two traffic groups
 const MAX_LAG_DISTANCE = 600; // Max distance before behing damaged
-let lastTrafficSpawnY = 0;
+const SPAWN_GRACE_FRAMES = 60; // ~1s for a new car to start before it can be judged
+const SPAWN_CLEARANCE = 150; // Min distance to traffic in the lane where a new AI car appears
 
 if (localStorage.getItem("bestBrain")) {
     for (let i = 0; i < cars.length; i++) {
@@ -809,17 +927,17 @@ if (localStorage.getItem("bestBrain")) {
             }
         }
     }
-    
 }
 
-const traffic = [];
-lastTrafficSpawnY = canvas.height - 100; // Start from player position
+bestCar = cars[0];
 
-// Spawn initial traffic
+const traffic = [];
+
+// Spawn initial traffic, starting a group gap above the player
+let initialSpawnY = playerCar.y - TRAFFIC_GROUP_GAP;
 for (let i = 0; i < 5; i++) {
-    const spawnY = lastTrafficSpawnY - (i + 1) * TRAFFIC_SPAWN_INTERVAL;
-    traffic.push(...spawnTraffic(spawnY));
-    lastTrafficSpawnY = spawnY;
+    traffic.push(...spawnTraffic(initialSpawnY));
+    initialSpawnY = trafficTopY() - TRAFFIC_GROUP_GAP;
 }
 
 animate();
