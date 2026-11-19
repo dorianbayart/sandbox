@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Race</title>
+    <meta name="description" content="Self-driving cars learn to race and overtake on a winding procedural road.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Neural Race</h1>
+
+    <div id="info">
+        <div>Generation: <span id="generation">1</span></div>
+        <div>Best: <span id="bestDistance">0</span>px</div>
+        <div>Alive: <span id="alive">0</span></div>
+        <div>Tried: <span id="tried">0</span> cars</div>
+        <p class="hint">The AI cars learn to overtake the red traffic.<br>Press an arrow key to drive the blue car.</p>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="verticalButtons">
+        <button onclick="save()">💾 Save</button>
+        <button onclick="discard()">🗑️ Discard</button>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

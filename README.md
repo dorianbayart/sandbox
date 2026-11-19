@@ -25,9 +25,9 @@ A pixelated game in-between Tower Defense and Clicker styles: [Pixel Fortress](g
 A minimalist tower war style game: [Minimalist Tower War](games/tower-war)
 
 ### Neural Race
-[![Neural Race](assets/thumbs/neural-race.webp)](games/road/03)
+[![Neural Race](assets/thumbs/neural-race.webp)](games/road/04)
 
-Race against self-driving cars whose neural networks learn to dodge traffic, generation after generation: [Neural Race](games/road/03)
+Self-driving cars learn to overtake traffic on a winding procedural road, generation after generation. Take the wheel with the arrow keys: [Neural Race](games/road/04)
 
 ### Unlimited RPG Clicker
 [![Unlimited RPG Clicker](assets/thumbs/unlimited-rpg-clicker.webp)](games/unlimited-rpg-clicker)
