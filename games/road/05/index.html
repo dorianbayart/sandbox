@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Lab · Neural Race</title>
+    <meta name="description" content="Watch a genetic algorithm train small neural networks to drive, and compare network sizes.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="top">
+        <a class="back" href="../../../">← Sandbox</a>
+        <h1>Neural Lab</h1>
+        <p>A genetic algorithm trains small neural networks to drive. Change the network size and compare.</p>
+    </header>
+
+    <main class="layout">
+        <aside class="panel">
+            <form id="settings" autocomplete="off" novalidate>
+                <h2>Network</h2>
+                <label>Hidden layers
+                    <input id="hidden" type="text" value="8, 8, 6" spellcheck="false">
+                    <small>Neurons per layer, e.g. <code>8, 6</code> or <code>16</code>. Empty: inputs wired straight to outputs.</small>
+                </label>
+                <label>Rays in front
+                    <select id="rays">
+                        <option>7</option><option selected>9</option><option>11</option><option>13</option><option>15</option>
+                    </select>
+                    <small>In front, one fan: long rays close together in the middle to see far ahead, short ones further apart on the sides. Plus 8 short rays: ±90° and ±120° for the blind spots (they only reach the next lane), ±160° and ±175° behind, to reverse safely. Traffic signals 2 to 3.5 s before changing lane
+                        (sometimes for no reason) or taking an exit; two inputs read it: a car about to cut into the
+                        AI's lane from the left, from the right (1 alongside, 0 at 500 px or none).</small>
+                </label>
+                <label>Memory neurons
+                    <button class="help-toggle" type="button" aria-expanded="false" aria-controls="help-memory" title="What is it?">?</button>
+                    <select id="memory">
+                        <option>0</option><option>1</option><option selected>2</option><option>3</option>
+                    </select>
+                </label>
+                <div id="help-memory" class="help" hidden>
+                    <p>Extra outputs that come back as inputs at the next step: the network can keep something in
+                    mind from one step to the next. Nothing tells it what: evolution finds out, for example whether an
+                    obstacle gets closer (a speed), that it is overtaking, or how long it has been braking.</p>
+                    <ul>
+                        <li><b>0</b>: the network only sees the present moment, like a photo.</li>
+                        <li><b>1 or 2</b>: enough for a trend or a state. Each one adds a few parameters.</li>
+                    </ul>
+                </div>
+                <p class="note">Inputs: the rays, the speed, the two cut-ins, the memory. Outputs: throttle, brake
+                    (stopped, holding it reverses), steering, then the memory.</p>
+                <p class="note">Shape <b id="shapePreview"></b> · <b id="paramPreview"></b> parameters</p>
+
+                <h2>Evolution</h2>
+                <label>Population <input id="population" type="number" min="10" max="300" value="300"></label>
+                <label>Elites kept unchanged <input id="elites" type="number" min="0" max="20" value="10"></label>
+                <label>Changes per child
+                    <button class="help-toggle" type="button" aria-expanded="false" aria-controls="help-rate" title="What is it?">?</button>
+                    <input id="changesPerChild" type="number" min="0.5" max="100" step="0.5" value="10">
+                    <small>Mutation rate = changes ÷ parameters = <b id="ratePreview"></b></small></label>
+                <div id="help-rate" class="help" hidden>
+                    <p>Each child copies its parents' parameters, then a few of them are changed at random. This sets how
+                    many, on average. The chance for each parameter to change (the mutation rate) follows from it, so the
+                    setting stays valid whatever the network size.</p>
+                    <ul>
+                        <li><b>Too many</b> (dozens): children no longer look like their parents, good brains get broken, the
+                            average stays low and the best curve jumps around.</li>
+                        <li><b>Too few</b> (under 1): most children are copies, progress is slow and the curve stays flat.</li>
+                        <li><b>Start around 3 to 10.</b></li>
+                    </ul>
+                </div>
+                <label>Mutation size
+                    <button class="help-toggle" type="button" aria-expanded="false" aria-controls="help-size" title="What is it?">?</button>
+                    <input id="sigmaStart" type="number" min="0.05" max="3" step="0.05" value="0.5">
+                    <small>At the first generation, then decreasing.</small></label>
+                <div class="pair">
+                    <label>Decrease / gen (%) <input id="sigmaDecay" type="number" min="0" max="50" step="0.5" value="3"></label>
+                    <label>Minimum <input id="sigmaMin" type="number" min="0" max="3" step="0.01" value="0.05"></label>
+                </div>
+                <small class="after-pair" id="sigmaPreview"></small>
+                <div id="help-size" class="help" hidden>
+                    <p>A changed parameter moves by a random amount: usually less than this size, rarely up to 2 or 3 times
+                    more (a gaussian). Parameters themselves are mostly between −1 and 1.</p>
+                    <ul>
+                        <li><b>Big</b> (≥ 0.5): big jumps, good to explore at the start, but they spoil a brain that already
+                            drives well.</li>
+                        <li><b>Small</b> (≤ 0.1): fine tuning, good once the cars drive, too slow to find a first solution.</li>
+                        <li><b>So it decreases</b> at each generation, down to the minimum. Too fast, and evolution freezes
+                            before the cars drive well; the minimum keeps it going.</li>
+                        <li><b>Fine-tune a champion</b>: import it with a small size (0.1) and no decrease.</li>
+                    </ul>
+                </div>
+
+                <h2>Evaluation</h2>
+                <label>Tracks per generation
+                    <select id="tracks"><option>1</option><option>2</option><option selected>3</option></select>
+                </label>
+                <label class="check"><input id="sameTracks" type="checkbox"> Same tracks every generation</label>
+                <small>Checked: easier, but the networks may learn the track by heart instead of learning to drive.</small>
+                <label>Race length (s) <input id="episodeSeconds" type="number" min="10" max="300" value="60"></label>
+                <label>Seed <input id="seed" type="number" min="1" value="1">
+                    <small>Same seed = same tracks: keep it to compare networks fairly.</small></label>
+
+                <button id="restart" class="primary" type="submit">New training</button>
+                <p id="error" class="error" role="alert"></p>
+            </form>
+
+            <h2>Champion</h2>
+            <div class="row">
+                <button id="export" type="button">Export</button>
+                <label class="button">Import… <input id="import" type="file" accept=".json,application/json" hidden></label>
+            </div>
+            <small>The car with the best validation score, as a JSON file with the network shape, its sensors and its
+                parameters, to keep or reuse later.</small>
+        </aside>
+
+        <section class="stage">
+            <div class="toolbar">
+                <label class="difficulty">Track
+                    <select id="difficulty" title="Applies from the next race">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                        <option value="progressive">Progressive</option>
+                    </select>
+                </label>
+                <div class="speeds" role="group" aria-label="Simulation speed">
+                    <button type="button" data-speed="1" aria-pressed="true">×1</button>
+                    <button type="button" data-speed="10" aria-pressed="false">×10</button>
+                    <button type="button" data-speed="100" aria-pressed="false">×100</button>
+                    <button type="button" data-speed="max" aria-pressed="false">Max</button>
+                </div>
+                <button id="pause" type="button">Pause</button>
+                <label class="check"><input id="draw" type="checkbox" checked> Draw the track</label>
+            </div>
+            <small class="toolbar-note">Track: easy = wide, gentle curves; hard = tight curves, twisty stretches and a
+                road that narrows and widens; progressive = easy, then medium from 3,000 px, hard from 8,000 px. It applies
+                from the next race, validation included. Zoom: mouse wheel or pinch, double-click to reset. Green car: the
+                champion, driving the same race to compare with the generation (it is not part of it).</small>
+            <div class="track-wrap">
+                <canvas id="track"></canvas>
+                <p id="hiddenTrack" class="overlay" hidden>Track hidden: all the time goes to training</p>
+            </div>
+            <dl id="stats" class="stats"></dl>
+        </section>
+
+        <aside class="panel">
+            <h2>Leader's network</h2>
+            <canvas id="network"></canvas>
+            <small>Orange = positive, blue = negative. Lines are weights, circles the current value of each neuron.</small>
+
+            <h2>Fitness (distance reached)</h2>
+            <canvas id="chart"></canvas>
+            <small>Green: best of each generation, grey: average. White: validation, the best of the generation alone
+                on 3 fixed tracks never used for training: the honest score, which picks the champion (one per track
+                difficulty: scores on different difficulties don't compare). Dashed: validation
+                of your previous trainings.</small>
+            <ul id="runs" class="runs"></ul>
+            <button id="clearRuns" type="button">Clear previous trainings</button>
+        </aside>
+    </main>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
